@@ -22,7 +22,8 @@ public class TransactionReader : ITransactionReader
         if (stream == null)
             throw new ArgumentNullException(nameof(stream));
 
-        using var reader = new StreamReader(stream);
+        using var reader = new StreamReader(stream, leaveOpen: true);
+
         return await ReadTransactionsFromReaderAsync(reader);
     }
 

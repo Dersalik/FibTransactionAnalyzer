@@ -1,6 +1,189 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="privacy-container">
+    <div class="privacy-header text-center mb-5">
+        <h1 class="display-4 text-primary mb-3">
+            <i class="fas fa-shield-alt me-3"></i>Privacy Policy
+        </h1>
+        <p class="lead text-muted">Your privacy is our priority. We believe in complete transparency about how we handle your data.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Key Privacy Points -->
+            <div class="row mb-5">
+                <div class="col-md-4 mb-4">
+                    <div class="privacy-card h-100 text-center p-4 border rounded shadow-sm">
+                        <div class="privacy-icon mb-3">
+                            <i class="fas fa-database fa-3x text-success"></i>
+                        </div>
+                        <h4 class="text-success">No Data Storage</h4>
+                        <p class="text-muted">We do not store, save, or retain any of your transaction data on our servers.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="privacy-card h-100 text-center p-4 border rounded shadow-sm">
+                        <div class="privacy-icon mb-3">
+                            <i class="fas fa-microchip fa-3x text-info"></i>
+                        </div>
+                        <h4 class="text-info">Local Processing</h4>
+                        <p class="text-muted">All analysis is performed locally in your browser or on our server temporarily during processing.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="privacy-card h-100 text-center p-4 border rounded shadow-sm">
+                        <div class="privacy-icon mb-3">
+                            <i class="fas fa-eye-slash fa-3x text-warning"></i>
+                        </div>
+                        <h4 class="text-warning">No Tracking</h4>
+                        <p class="text-muted">We don't use cookies, analytics, or any tracking mechanisms to monitor your usage.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Privacy Information -->
+            <div class="privacy-section mb-5">
+                <h2 class="h3 text-primary mb-4">
+                    <i class="fas fa-info-circle me-2"></i>How We Handle Your Data
+                </h2>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">
+                            <i class="fas fa-upload me-2"></i>When You Upload Transaction Files
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Files are processed immediately upon upload</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Data is analyzed in real-time for insights</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Results are displayed instantly to you</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>All data is immediately discarded after processing</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">
+                            <i class="fas fa-server me-2"></i>Server Processing
+                        </h5>
+                        <p class="card-text">
+                            Your transaction data may temporarily exist in server memory during the analysis process.
+                            This data is never written to disk, databases, or log files. Once the analysis is complete
+                            and results are returned to you, all traces of your data are automatically removed from memory.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">
+                            <i class="fas fa-shield-alt me-2"></i>Security Measures
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-lock text-warning me-2"></i>All communications are encrypted using HTTPS</li>
+                            <li class="mb-2"><i class="fas fa-lock text-warning me-2"></i>No persistent storage of any kind</li>
+                            <li class="mb-2"><i class="fas fa-lock text-warning me-2"></i>No access logs containing your data</li>
+                            <li class="mb-2"><i class="fas fa-lock text-warning me-2"></i>Immediate memory cleanup after processing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What We Don't Do -->
+            <div class="privacy-section mb-5">
+                <h2 class="h3 text-danger mb-4">
+                    <i class="fas fa-times-circle me-2"></i>What We Never Do
+                </h2>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-danger border-0">
+                            <h6><i class="fas fa-times me-2"></i>No Data Sharing</h6>
+                            <small>We never share your transaction data with third parties</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-danger border-0">
+                            <h6><i class="fas fa-times me-2"></i>No Data Sales</h6>
+                            <small>We never sell or monetize your personal financial information</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-danger border-0">
+                            <h6><i class="fas fa-times me-2"></i>No Profiling</h6>
+                            <small>We don't create profiles or track your spending habits</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-danger border-0">
+                            <h6><i class="fas fa-times me-2"></i>No Retention</h6>
+                            <small>We don't keep copies or backups of your transaction data</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="privacy-section">
+                <h2 class="h3 text-primary mb-4">
+                    <i class="fas fa-envelope me-2"></i>Questions About Privacy?
+                </h2>
+                <div class="card border-primary">
+                    <div class="card-body">
+                        <p class="card-text">
+                            If you have any questions about this privacy policy or how we handle your data,
+                            we encourage you to reach out. Transparency is important to us, and we're happy
+                            to provide additional clarification.
+                        </p>
+                        <p class="card-text mb-0">
+                            <strong>Our Commitment:</strong> We will continue to maintain this no-storage policy
+                            and will update this page if any changes are made to our data handling practices.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .privacy-container {
+        padding: 2rem 0;
+    }
+
+    .privacy-card {
+        transition: transform 0.2s ease-in-out;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    }
+
+        .privacy-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .privacy-icon {
+        opacity: 0.8;
+    }
+
+    .privacy-section h2 {
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.5rem;
+    }
+
+    .card {
+        transition: box-shadow 0.2s ease-in-out;
+    }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+    .alert {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    }
+</style>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}

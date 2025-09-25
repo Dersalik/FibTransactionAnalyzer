@@ -99,6 +99,28 @@ public class CurrencyExtensionsTest
         }
     }
 
+    [Theory]
+    [MemberData(nameof(AllCurrencyValues))]
+    public void GetCultureCode_WithAllCurrencies_ReturnsCorrectCulture(Currency currency)
+    {
+        // Arrange 
+        var cultureCode = currency.GetCultureCode();
+
+        // Act & Assert
+        switch (currency)
+        {
+            case Currency.USD:
+                Assert.Equal("en-US", cultureCode);
+                break;
+            case Currency.IQD:
+                Assert.Equal("ar-IQ", cultureCode);
+                break;
+            case Currency.EUR:
+                Assert.Equal("de-DE", cultureCode);
+                break;
+        }
+    }
+
     public static IEnumerable<object[]> AllCurrencyValues =>
         Enum.GetValues<Currency>().Select(c => new Object[] { c });
 }

@@ -40,4 +40,18 @@ public static class CurrencyExtensions
             _ => currency.ToCode()
         };
     }
+
+    /// <summary>
+    /// Gets the appropriate culture info for currency formatting
+    /// </summary>
+    public static string GetCultureCode(this Currency currency)
+    {
+        return currency switch
+        {
+            Currency.USD => "en-US", // United States
+            Currency.EUR => "de-DE", // Germany (common Euro culture)
+            Currency.IQD => "ar-IQ", // Iraq
+            _ => throw new NotImplementedException(),
+        };
+    }
 }

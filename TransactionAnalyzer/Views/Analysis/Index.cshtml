@@ -1,0 +1,165 @@
+﻿@{
+    ViewData["Title"] = "Transaction Analysis";
+}
+
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary">Transaction Analysis</h1>
+                <p class="lead text-muted">Upload your CSV file to analyze your financial transactions</p>
+            </div>
+
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <form asp-controller="Analysis" asp-action="UploadAndAnalyze" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-4">
+                            <label for="file" class="form-label fw-semibold">Select CSV File</label>
+                            <input type="file"
+                                   class="form-control form-control-lg"
+                                   id="file"
+                                   name="file"
+                                   accept=".csv,.txt"
+                                   required>
+                            <div class="form-text">Upload your transaction CSV file (max 10MB)</div>
+                            <div class="invalid-feedback">Please select a valid CSV file.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="ignoreInternalTransactions"
+                                       name="ignoreInternalTransactions"
+                                       checked
+                                       value="true">
+                                <label class="form-check-label fw-semibold" for="ignoreInternalTransactions">
+                                    Ignore Internal Transactions
+                                </label>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    When enabled, internal transfers and account-to-account transactions will be excluded from the analysis
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <div>@error.ErrorMessage</div>
+                                }
+                            </div>
+                        }
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Analyze Transactions
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <small class="text-muted">
+                    Supported formats: CSV files with FIB transaction export format
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.needs-validation');
+        const fileInput = document.getElementById('file');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+                analyzeBtn.disabled = true;
+            }
+            form.classList.add('was-validated');
+        });
+
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                const fileText = document.querySelector('.form-text');
+                fileText.textContent = `Selected: ${file.name} (${fileSize} MB)`;
+            }
+        });
+    });
+</script>
+
+<style>
+    .card {
+        border-radius: 20px;
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+    .btn-primary {
+        border-radius: 15px;
+        padding: 15px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+        }
+
+    .form-control {
+        border-radius: 12px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+        }
+
+    .form-check-input {
+        border-radius: 6px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .form-check-input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+        }
+
+    .text-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+</style>

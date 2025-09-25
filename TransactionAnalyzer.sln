@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transaction.Test", "Transac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionAnalyzer", "TransactionAnalyzer\TransactionAnalyzer.csproj", "{654E34F3-6625-49B5-8E00-0EE15D1C16BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionAnalyzer.Test", "TransactionAnalyzer.Test\TransactionAnalyzer.Test.csproj", "{411859D2-249B-4D53-A043-31207E5A70FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{654E34F3-6625-49B5-8E00-0EE15D1C16BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{654E34F3-6625-49B5-8E00-0EE15D1C16BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{654E34F3-6625-49B5-8E00-0EE15D1C16BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{411859D2-249B-4D53-A043-31207E5A70FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{411859D2-249B-4D53-A043-31207E5A70FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{411859D2-249B-4D53-A043-31207E5A70FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{411859D2-249B-4D53-A043-31207E5A70FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

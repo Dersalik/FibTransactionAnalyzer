@@ -1,0 +1,648 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TransactionAnalyzer.Services;
+using Xunit;
+
+namespace Transaction.Test.Unit;
+
+public class TransactionAnalysisServiceTest
+{
+    private readonly TransactionAnalysisService _service = new();
+
+    #region Test Data Helpers
+
+    private static List<FibTransaction> CreateTestTransactions()
+    {
+        return new List<FibTransaction>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Amount = new MonetaryValue(100m, Currency.USD),
+                Fee = new MonetaryValue(2m, Currency.USD),
+                BalanceAfter = new MonetaryValue(1100m, Currency.USD),
+                TransactionType = "TRANSFER",
+                Date = new DateTime(2023, 10, 1),
+                Time = new TimeSpan(10, 0, 0),
+                Counterparty = "John Doe",
+                Status = "COMPLETED"
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Amount = new MonetaryValue(-50m, Currency.USD),
+                Fee = new MonetaryValue(1m, Currency.USD),
+                BalanceAfter = new MonetaryValue(1050m, Currency.USD),
+                TransactionType = "PAYMENT",
+                Date = new DateTime(2023, 10, 2),
+                Time = new TimeSpan(14, 30, 0),
+                Counterparty = "Store ABC",
+                Status = "COMPLETED"
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Amount = new MonetaryValue(25m, Currency.USD),
+                Fee = new MonetaryValue(0m, Currency.USD),
+                BalanceAfter = new MonetaryValue(0m, Currency.USD),
+                TransactionType = "MONEY_BOX_TRANSFER",
+                Date = new DateTime(2023, 10, 3),
+                Time = new TimeSpan(9, 0, 0),
+                Counterparty = "Money Box",
+                Status = "COMPLETED"
+            }
+        };
+    }
+
+    private static List<FibTransaction> CreateMultiCurrencyTransactions()
+    {
+        return new List<FibTransaction>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Amount = new MonetaryValue(100m, Currency.USD),
+                Fee = new MonetaryValue(2m, Currency.USD),
+                BalanceAfter = new MonetaryValue(100m, Currency.USD),
+                TransactionType = "TRANSFER",
+                Date = new DateTime(2023, 9, 1),
+                Time = new TimeSpan(10, 0, 0),
+                Counterparty = "USD Counterparty"
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Amount = new MonetaryValue(200m, Currency.EUR),
+                Fee = new MonetaryValue(3m, Currency.EUR),
+                BalanceAfter = new MonetaryValue(200m, Currency.EUR),
+                TransactionType = "PAYMENT",
+                Date = new DateTime(2023, 9, 2),
+                Time = new TimeSpan(11, 0, 0),
+                Counterparty = "EUR Counterparty"
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Amount = new MonetaryValue(300m, Currency.IQD),
+                Fee = new MonetaryValue(1m, Currency.IQD),
+                BalanceAfter = new MonetaryValue(300m, Currency.IQD),
+                TransactionType = "DEPOSIT",
+                Date = new DateTime(2023, 9, 3),
+                Time = new TimeSpan(12, 0, 0),
+                Counterparty = "IQD Counterparty"
+            }
+        };
+    }
+
+    private static List<FibTransaction> CreateMonthlyTestTransactions()
+    {
+        return new List<FibTransaction>
+        {
+            // January 2023
+            new()
+            {
+                Amount = new MonetaryValue(500m, Currency.USD),
+                Date = new DateTime(2023, 1, 15),
+                TransactionType = "SALARY"
+            },
+            new()
+            {
+                Amount = new MonetaryValue(-100m, Currency.USD),
+                Date = new DateTime(2023, 1, 20),
+                TransactionType = "PAYMENT"
+            },
+            // February 2023
+            new()
+            {
+                Amount = new MonetaryValue(600m, Currency.USD),
+                Date = new DateTime(2023, 2, 15),
+                TransactionType = "SALARY"
+            },
+            new()
+            {
+                Amount = new MonetaryValue(-200m, Currency.USD),
+                Date = new DateTime(2023, 2, 25),
+                TransactionType = "PAYMENT"
+            }
+        };
+    }
+
+    #endregion
+
+    #region AnalyzeTransactionsAsync Tests
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_WithValidTransactions_ReturnsCorrectResult()
+    {
+        // Arrange
+        var transactions = CreateTestTransactions();
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(3, result.TotalTransactionCount);
+        Assert.Equal(3, result.FilteredTransactionCount);
+        Assert.Single(result.CurrencyAnalyses);
+        Assert.Contains(Currency.USD, result.CurrencyAnalyses.Keys);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_WithIgnoreInternalTransactions_FiltersCorrectly()
+    {
+        // Arrange
+        var transactions = CreateTestTransactions();
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, true);
+
+        // Assert
+        Assert.Equal(3, result.TotalTransactionCount);
+        Assert.Equal(2, result.FilteredTransactionCount); // Money box transfer filtered out
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_WithEmptyTransactions_ReturnsEmptyResult()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>();
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(0, result.TotalTransactionCount);
+        Assert.Equal(0, result.FilteredTransactionCount);
+        Assert.Empty(result.CurrencyAnalyses);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_WithNullTransactions_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            _service.AnalyzeTransactionsAsync(null, false));
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_WithMultipleCurrencies_AnalyzesAllCurrencies()
+    {
+        // Arrange
+        var transactions = CreateMultiCurrencyTransactions();
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        Assert.Equal(3, result.CurrencyAnalyses.Count);
+        Assert.Contains(Currency.USD, result.CurrencyAnalyses.Keys);
+        Assert.Contains(Currency.EUR, result.CurrencyAnalyses.Keys);
+        Assert.Contains(Currency.IQD, result.CurrencyAnalyses.Keys);
+    }
+
+    #endregion
+
+    #region Currency Analysis Tests
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesBasicMetricsCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Fee = new MonetaryValue(2m, Currency.USD) },
+            new() { Amount = new MonetaryValue(-50m, Currency.USD), Fee = new MonetaryValue(1m, Currency.USD) },
+            new() { Amount = new MonetaryValue(25m, Currency.USD), Fee = new MonetaryValue(0.5m, Currency.USD) }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(125m, usdAnalysis.TotalInflow); 
+        Assert.Equal(50m, usdAnalysis.TotalOutflow); 
+        Assert.Equal(75m, usdAnalysis.NetAmount); 
+        Assert.Equal(3.5m, usdAnalysis.TotalFees); 
+        Assert.Equal(3, usdAnalysis.TransactionCount);
+    }
+
+    #endregion
+
+    #region Monthly Analysis Tests
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesMonthlyAnalysisCorrectly()
+    {
+        // Arrange
+        var transactions = CreateMonthlyTestTransactions();
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(2, usdAnalysis.MonthlyAnalyses.Count);
+
+        // Check February (should be first due to descending order)
+        var febAnalysis = usdAnalysis.MonthlyAnalyses.First();
+        Assert.Equal(2023, febAnalysis.Year);
+        Assert.Equal(2, febAnalysis.Month);
+        Assert.Equal(600m, febAnalysis.Income);
+        Assert.Equal(200m, febAnalysis.Expenses);
+        Assert.Equal(2, febAnalysis.TransactionCount);
+
+        // Check January
+        var janAnalysis = usdAnalysis.MonthlyAnalyses.Last();
+        Assert.Equal(2023, janAnalysis.Year);
+        Assert.Equal(1, janAnalysis.Month);
+        Assert.Equal(500m, janAnalysis.Income);
+        Assert.Equal(100m, janAnalysis.Expenses);
+        Assert.Equal(2, janAnalysis.TransactionCount);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_FiltersInvalidDatesFromMonthlyAnalysis()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Date = DateTime.MinValue },
+            new() { Amount = new MonetaryValue(200m, Currency.USD), Date = new DateTime(2023, 1, 1) }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Single(usdAnalysis.MonthlyAnalyses); // Only the valid date should be included
+    }
+
+    #endregion
+
+    #region Yearly Analysis Tests
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesYearlyAnalysisCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Date = new DateTime(2022, 6, 1) },
+            new() { Amount = new MonetaryValue(-50m, Currency.USD), Date = new DateTime(2022, 6, 2) },
+            new() { Amount = new MonetaryValue(200m, Currency.USD), Date = new DateTime(2023, 1, 1) },
+            new() { Amount = new MonetaryValue(-75m, Currency.USD), Date = new DateTime(2023, 1, 2) }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(2, usdAnalysis.YearlyAnalyses.Count);
+
+        // Check 2023 (should be first due to descending order)
+        var analysis2023 = usdAnalysis.YearlyAnalyses.First();
+        Assert.Equal(2023, analysis2023.Year);
+        Assert.Equal(200m, analysis2023.Income);
+        Assert.Equal(75m, analysis2023.Expenses);
+        Assert.Equal(2, analysis2023.TransactionCount);
+
+        // Check 2022
+        var analysis2022 = usdAnalysis.YearlyAnalyses.Last();
+        Assert.Equal(2022, analysis2022.Year);
+        Assert.Equal(100m, analysis2022.Income);
+        Assert.Equal(50m, analysis2022.Expenses);
+        Assert.Equal(2, analysis2022.TransactionCount);
+    }
+
+    #endregion
+
+    #region Balance History Tests
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesBalanceHistoryWithBalanceAfter()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new()
+            {
+                Amount = new MonetaryValue(100m, Currency.USD),
+                BalanceAfter = new MonetaryValue(100m, Currency.USD),
+                Date = new DateTime(2023, 1, 1),
+                Time = new TimeSpan(10, 0, 0)
+            },
+            new()
+            {
+                Amount = new MonetaryValue(-50m, Currency.USD),
+                BalanceAfter = new MonetaryValue(50m, Currency.USD),
+                Date = new DateTime(2023, 1, 2),
+                Time = new TimeSpan(11, 0, 0)
+            }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(2, usdAnalysis.BalanceHistory.Count);
+        Assert.Equal(100m, usdAnalysis.BalanceHistory.First().Balance);
+        Assert.Equal(50m, usdAnalysis.BalanceHistory.Last().Balance);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesRunningBalanceWhenBalanceAfterIsZero()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new()
+            {
+                Amount = new MonetaryValue(100m, Currency.USD),
+                BalanceAfter = new MonetaryValue(0m, Currency.USD),
+                Date = new DateTime(2023, 1, 1),
+                Time = new TimeSpan(10, 0, 0)
+            },
+            new()
+            {
+                Amount = new MonetaryValue(-30m, Currency.USD),
+                BalanceAfter = new MonetaryValue(0m, Currency.USD), 
+                Date = new DateTime(2023, 1, 2),
+                Time = new TimeSpan(11, 0, 0)
+            }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(2, usdAnalysis.BalanceHistory.Count);
+        Assert.Equal(100m, usdAnalysis.BalanceHistory.First().Balance); 
+        Assert.Equal(70m, usdAnalysis.BalanceHistory.Last().Balance);
+    }
+
+    #endregion
+
+    #region Transaction Type Analysis Tests
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesTransactionTypeAnalysisCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), TransactionType = "TRANSFER" },
+            new() { Amount = new MonetaryValue(-50m, Currency.USD), TransactionType = "TRANSFER" },
+            new() { Amount = new MonetaryValue(-25m, Currency.USD), TransactionType = "PAYMENT" }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(2, usdAnalysis.TransactionTypeAnalyses.Count);
+
+        var transferAnalysis = usdAnalysis.TransactionTypeAnalyses.First(t => t.TransactionType == "TRANSFER");
+        Assert.Equal(2, transferAnalysis.Count);
+        Assert.Equal(150m, transferAnalysis.TotalAmount); // 100 + 50 (absolute)
+        Assert.Equal(100m, transferAnalysis.LargestAmount);
+
+        var paymentAnalysis = usdAnalysis.TransactionTypeAnalyses.First(t => t.TransactionType == "PAYMENT");
+        Assert.Equal(1, paymentAnalysis.Count);
+        Assert.Equal(25m, paymentAnalysis.TotalAmount);
+        Assert.Equal(25m, paymentAnalysis.LargestAmount);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesLargestTransactionsByTypeCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), TransactionType = "TRANSFER", Counterparty = "Big Transfer" },
+            new() { Amount = new MonetaryValue(-200m, Currency.USD), TransactionType = "TRANSFER", Counterparty = "Huge Outflow" },
+            new() { Amount = new MonetaryValue(-25m, Currency.USD), TransactionType = "PAYMENT", Counterparty = "Small Payment" }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+
+        // Should be ordered by largest amount descending
+        var largestByType = usdAnalysis.LargestTransactionsByType;
+        Assert.Equal("TRANSFER", largestByType.First().TransactionType);
+        Assert.Equal(200m, largestByType.First().LargestAmount);
+        Assert.Equal("Huge Outflow", largestByType.First().LargestTransaction.Counterparty);
+    }
+
+    #endregion
+
+    #region Counterparty Analysis Tests
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesTopCounterpartiesCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Big Company" },
+            new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "Big Company" },
+            new() { Amount = new MonetaryValue(-200m, Currency.USD), Counterparty = "Huge Vendor" },
+            new() { Amount = new MonetaryValue(-25m, Currency.USD), Counterparty = "Small Store" },
+            new() { Amount = new MonetaryValue(0m, Currency.USD), Counterparty = "" } // Empty counterparty should be ignored
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(3, usdAnalysis.TopCounterparties.Count); // Empty counterparty filtered out
+
+        // Should be ordered by total amount descending
+        var topCounterparty = usdAnalysis.TopCounterparties.First();
+        Assert.Equal("Huge Vendor", topCounterparty.Counterparty);
+        Assert.Equal(200m, topCounterparty.TotalAmount);
+        Assert.Equal(1, topCounterparty.TransactionCount);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_LimitsTopCounterpartiesTo20()
+    {
+        // Arrange - Create 25 different counterparties
+        var transactions = Enumerable.Range(1, 25)
+            .Select(i => new FibTransaction
+            {
+                Amount = new MonetaryValue(i, Currency.USD),
+                Counterparty = $"Counterparty {i}"
+            })
+            .ToList();
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(20, usdAnalysis.TopCounterparties.Count);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesCounterpartiesByTransactionTypeCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Company A", TransactionType = "TRANSFER" },
+            new() { Amount = new MonetaryValue(200m, Currency.USD), Counterparty = "Company B", TransactionType = "TRANSFER" },
+            new() { Amount = new MonetaryValue(-50m, Currency.USD), Counterparty = "Store A", TransactionType = "PAYMENT" },
+            new() { Amount = new MonetaryValue(-75m, Currency.USD), Counterparty = "Store B", TransactionType = "PAYMENT" }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(2, usdAnalysis.CounterpartiesByTransactionType.Count);
+
+        Assert.Contains("TRANSFER", usdAnalysis.CounterpartiesByTransactionType.Keys);
+        Assert.Contains("PAYMENT", usdAnalysis.CounterpartiesByTransactionType.Keys);
+
+        var transferCounterparties = usdAnalysis.CounterpartiesByTransactionType["TRANSFER"];
+        Assert.Equal(2, transferCounterparties.Count);
+        Assert.Equal("Company B", transferCounterparties.First().Counterparty); // Ordered by amount descending
+    }
+
+    #endregion
+
+    #region Statistics Tests
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesIncomeStatisticsCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Date = new DateTime(2023, 1, 1) },
+            new() { Amount = new MonetaryValue(200m, Currency.USD), Date = new DateTime(2023, 2, 1) },
+            new() { Amount = new MonetaryValue(50m, Currency.USD), Date = new DateTime(2023, 3, 1) },
+            new() { Amount = new MonetaryValue(-25m, Currency.USD), Date = new DateTime(2023, 1, 15) } // Expense, should not affect income stats
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(116.67m, Math.Round(usdAnalysis.AverageMonthlyIncome, 2)); // (100 + 200 + 50) / 3
+        Assert.Equal(200m, usdAnalysis.MaxMonthlyIncome);
+        Assert.Equal(50m, usdAnalysis.MinMonthlyIncome);
+
+        Assert.NotNull(usdAnalysis.BestIncomeMonth);
+        Assert.Equal(2, usdAnalysis.BestIncomeMonth.Month);
+        Assert.Equal(200m, usdAnalysis.BestIncomeMonth.Income);
+
+        Assert.NotNull(usdAnalysis.WorstIncomeMonth);
+        Assert.Equal(3, usdAnalysis.WorstIncomeMonth.Month);
+        Assert.Equal(50m, usdAnalysis.WorstIncomeMonth.Income);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_HandlesNoIncomeMonthsGracefully()
+    {
+        // Arrange - Only expense transactions
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(-100m, Currency.USD), Date = new DateTime(2023, 1, 1) },
+            new() { Amount = new MonetaryValue(-50m, Currency.USD), Date = new DateTime(2023, 2, 1) }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(0m, usdAnalysis.AverageMonthlyIncome);
+        Assert.Equal(0m, usdAnalysis.MaxMonthlyIncome);
+        Assert.Equal(0m, usdAnalysis.MinMonthlyIncome);
+        Assert.Null(usdAnalysis.BestIncomeMonth);
+        Assert.Null(usdAnalysis.WorstIncomeMonth);
+    }
+
+    #endregion
+
+    #region Edge Cases
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_HandlesAllMoneyBoxTransfers()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), TransactionType = "MONEY_BOX_TRANSFER" },
+            new() { Amount = new MonetaryValue(50m, Currency.USD), TransactionType = "MONEY_BOX_TRANSFER" }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, true);
+
+        // Assert
+        Assert.Equal(2, result.TotalTransactionCount);
+        Assert.Equal(0, result.FilteredTransactionCount);
+        Assert.Empty(result.CurrencyAnalyses);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_HandlesTransactionsWithoutCounterparty()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = null },
+            new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "" },
+            new() { Amount = new MonetaryValue(25m, Currency.USD), Counterparty = "Valid Counterparty" }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Single(usdAnalysis.TopCounterparties); 
+        Assert.Equal("Valid Counterparty", usdAnalysis.TopCounterparties.First().Counterparty);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_HandlesZeroAmountTransactions()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(0m, Currency.USD), TransactionType = "ZERO_TRANSFER" },
+            new() { Amount = new MonetaryValue(100m, Currency.USD), TransactionType = "NORMAL_TRANSFER" }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(2, usdAnalysis.TransactionCount);
+        Assert.Equal(100m, usdAnalysis.TotalInflow);
+        Assert.Equal(0m, usdAnalysis.TotalOutflow);
+        Assert.Equal(100m, usdAnalysis.NetAmount);
+    }
+
+    #endregion
+}
