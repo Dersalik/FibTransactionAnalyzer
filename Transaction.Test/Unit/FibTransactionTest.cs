@@ -13,9 +13,9 @@ public class FibTransactionTest
         // Assert
         Assert.Equal(Guid.Empty, transaction.Id);
         Assert.Equal(string.Empty, transaction.Counterparty);
-        Assert.Equal(new MonetaryValue(0, Currency.USD), transaction.Amount);
-        Assert.Equal(new MonetaryValue(0, Currency.USD), transaction.Fee);
-        Assert.Equal(new MonetaryValue(0, Currency.USD), transaction.BalanceAfter);
+        Assert.Equal(new MonetaryValue(0, Currency.IQD), transaction.Amount);
+        Assert.Equal(new MonetaryValue(0, Currency.IQD), transaction.Fee);
+        Assert.Equal(new MonetaryValue(0, Currency.IQD), transaction.BalanceAfter);
         Assert.Equal(string.Empty, transaction.TransactionType);
         Assert.Equal(DateTime.MinValue, transaction.Date);
         Assert.Equal(TimeSpan.Zero, transaction.Time);
