@@ -1,0 +1,80 @@
+# Simple CI/CD Pipeline for Transaction Analyzer
+# This workflow focuses on the three essential tasks:
+# 1. Building all projects to catch compilation errors
+# 2. Running both test projects to verify functionality
+# 3. Uploading test results so you can see what passed/failed
+
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master ]
+  
+  pull_request:
+    branches: [ main, master ]
+  
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  BUILD_CONFIGURATION: 'Release'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    
+    - name: Get the code from repository
+      uses: actions/checkout@v4
+    
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Download required packages
+      run: dotnet restore TransactionAnalyzer.sln
+    
+    - name: Build all projects
+      run: |
+        dotnet build TransactionAnalyzer.sln \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-restore \
+          --verbosity normal
+    
+    - name: Run all tests
+      run: |
+        dotnet test TransactionAnalyzer.sln \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-build \
+          --verbosity normal \
+          --logger trx \
+          --results-directory ./test-results
+    
+    - name: Upload test results for review
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: ./test-results/*.trx
+        retention-days: 7
+    
+    - name: Create build summary
+      if: always()
+      run: |
+        echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Configuration**: ${{ env.BUILD_CONFIGURATION }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **.NET Version**: ${{ env.DOTNET_VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Projects Built" >> $GITHUB_STEP_SUMMARY
+        echo "- TransactionReader (Transaction.csproj)" >> $GITHUB_STEP_SUMMARY
+        echo "- TransactionAnalyzer" >> $GITHUB_STEP_SUMMARY
+        echo "- TransactionConsoleAnalyzer" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Test Projects Executed" >> $GITHUB_STEP_SUMMARY
+        echo "- Transaction.Test" >> $GITHUB_STEP_SUMMARY
+        echo "- TransactionAnalyzer.Test" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Test results have been uploaded and are available in the 'Artifacts' section below."

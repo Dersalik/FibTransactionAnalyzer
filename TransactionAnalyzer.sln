@@ -5,13 +5,18 @@ VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transaction", "TransactionReader\Transaction.csproj", "{A140A92E-4AA2-42AF-85C3-C7685A475F64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionConsoleAnalyzer", "TransactionConsoleAnalyzer\TransactionConsoleAnalyzer.csproj", "{9228185E-930F-430E-A6DB-4BA8EFDE6865}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transaction.Test", "Transaction.Test\Transaction.Test.csproj", "{7513432E-3825-4174-A89E-CE3D6E9284FB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionAnalyzer", "TransactionAnalyzer\TransactionAnalyzer.csproj", "{654E34F3-6625-49B5-8E00-0EE15D1C16BB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionAnalyzer.Test", "TransactionAnalyzer.Test\TransactionAnalyzer.Test.csproj", "{411859D2-249B-4D53-A043-31207E5A70FA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{86250679-5979-420B-8CDE-366D62FFD884}"
+	ProjectSection(SolutionItems) = preProject
+		ci-cd.yml = ci-cd.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +28,6 @@ Global
 		{A140A92E-4AA2-42AF-85C3-C7685A475F64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A140A92E-4AA2-42AF-85C3-C7685A475F64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A140A92E-4AA2-42AF-85C3-C7685A475F64}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9228185E-930F-430E-A6DB-4BA8EFDE6865}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9228185E-930F-430E-A6DB-4BA8EFDE6865}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9228185E-930F-430E-A6DB-4BA8EFDE6865}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9228185E-930F-430E-A6DB-4BA8EFDE6865}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7513432E-3825-4174-A89E-CE3D6E9284FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7513432E-3825-4174-A89E-CE3D6E9284FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7513432E-3825-4174-A89E-CE3D6E9284FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -42,6 +43,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{86250679-5979-420B-8CDE-366D62FFD884} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5E4B86BA-2864-4453-A9A3-96E452B745E6}
