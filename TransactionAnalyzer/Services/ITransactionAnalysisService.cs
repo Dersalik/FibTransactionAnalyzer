@@ -1,5 +1,4 @@
 ﻿using Transaction;
-using TransactionAnalyzer.Models;
 
 namespace TransactionAnalyzer.Models;
 

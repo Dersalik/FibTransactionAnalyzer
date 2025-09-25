@@ -56,13 +56,13 @@ public class DateTimeConverterTests
     }
 
     [Theory]
-    [InlineData("2023-12-25")]           
-    [InlineData("12/25/2023")]          
-    [InlineData("25-12-2023")]           
-    [InlineData("invalid")]              
-    [InlineData("32/01/2023")]           
-    [InlineData("01/13/2023")]           
-    [InlineData("1/1/2023")]             
+    [InlineData("2023-12-25")]
+    [InlineData("12/25/2023")]
+    [InlineData("25-12-2023")]
+    [InlineData("invalid")]
+    [InlineData("32/01/2023")]
+    [InlineData("01/13/2023")]
+    [InlineData("1/1/2023")]
     public void ConvertFromString_InvalidFormat_ThrowsTypeConverterException(string invalidInput)
     {
         // Act & Assert

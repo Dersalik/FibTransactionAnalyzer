@@ -57,7 +57,7 @@ public class GuidConverterTests
     [InlineData("invalid-guid")]
     [InlineData("12345")]
     [InlineData("not-a-guid-at-all")]
-    [InlineData("123e4567-e89b-12d3-a456-42661417400")] 
+    [InlineData("123e4567-e89b-12d3-a456-42661417400")]
     public void ConvertFromString_InvalidFormat_ThrowsTypeConverterException(string invalidInput)
     {
         // Act & Assert

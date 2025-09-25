@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using TransactionAnalyzer.Services;
-using Xunit;
+﻿using TransactionAnalyzer.Services;
 
 namespace Transaction.Test.Unit;
 
@@ -224,10 +219,10 @@ public class TransactionAnalysisServiceTest
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
-        Assert.Equal(125m, usdAnalysis.TotalInflow); 
-        Assert.Equal(50m, usdAnalysis.TotalOutflow); 
-        Assert.Equal(75m, usdAnalysis.NetAmount); 
-        Assert.Equal(3.5m, usdAnalysis.TotalFees); 
+        Assert.Equal(125m, usdAnalysis.TotalInflow);
+        Assert.Equal(50m, usdAnalysis.TotalOutflow);
+        Assert.Equal(75m, usdAnalysis.NetAmount);
+        Assert.Equal(3.5m, usdAnalysis.TotalFees);
         Assert.Equal(3, usdAnalysis.TransactionCount);
     }
 
@@ -373,7 +368,7 @@ public class TransactionAnalysisServiceTest
             new()
             {
                 Amount = new MonetaryValue(-30m, Currency.USD),
-                BalanceAfter = new MonetaryValue(0m, Currency.USD), 
+                BalanceAfter = new MonetaryValue(0m, Currency.USD),
                 Date = new DateTime(2023, 1, 2),
                 Time = new TimeSpan(11, 0, 0)
             }
@@ -385,7 +380,7 @@ public class TransactionAnalysisServiceTest
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
         Assert.Equal(2, usdAnalysis.BalanceHistory.Count);
-        Assert.Equal(100m, usdAnalysis.BalanceHistory.First().Balance); 
+        Assert.Equal(100m, usdAnalysis.BalanceHistory.First().Balance);
         Assert.Equal(70m, usdAnalysis.BalanceHistory.Last().Balance);
     }
 
@@ -619,7 +614,7 @@ public class TransactionAnalysisServiceTest
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
-        Assert.Single(usdAnalysis.TopCounterparties); 
+        Assert.Single(usdAnalysis.TopCounterparties);
         Assert.Equal("Valid Counterparty", usdAnalysis.TopCounterparties.First().Counterparty);
     }
 

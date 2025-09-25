@@ -14,10 +14,10 @@ public class TransactionAnalysisService : ITransactionAnalysisService
     {
         var allTransactions = transactions.ToList();
 
-        var filteredTransactions = ignoreInternalTransactions 
+        var filteredTransactions = ignoreInternalTransactions
             ? allTransactions
             .Where(t => t.TransactionType != "MONEY_BOX_TRANSFER")
-            .ToList() 
+            .ToList()
             : allTransactions;
 
         var result = new TransactionAnalysisResult

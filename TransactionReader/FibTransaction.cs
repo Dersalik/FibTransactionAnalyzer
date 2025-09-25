@@ -1,5 +1,4 @@
 ﻿using CsvHelper.Configuration.Attributes;
-using System.ComponentModel.DataAnnotations;
 
 namespace Transaction;
 
@@ -14,15 +13,15 @@ public class FibTransaction
 
     [Name("AMOUNT")]
     [TypeConverter(typeof(MonetaryValueConverter))]
-    public MonetaryValue Amount { get; set; } = new MonetaryValue(0, Currency.USD);
+    public MonetaryValue Amount { get; set; } = new MonetaryValue(0, Currency.IQD);
 
     [Name("FEE")]
     [TypeConverter(typeof(MonetaryValueConverter))]
-    public MonetaryValue Fee { get; set; } = new MonetaryValue(0, Currency.USD);
+    public MonetaryValue Fee { get; set; } = new MonetaryValue(0, Currency.IQD);
 
     [Name("BALANCE AFTER")]
     [TypeConverter(typeof(MonetaryValueConverter))]
-    public MonetaryValue BalanceAfter { get; set; } = new MonetaryValue(0, Currency.USD);
+    public MonetaryValue BalanceAfter { get; set; } = new MonetaryValue(0, Currency.IQD);
 
     [Name("TRANSACTION TYPE")]
     public string TransactionType { get; set; } = string.Empty;

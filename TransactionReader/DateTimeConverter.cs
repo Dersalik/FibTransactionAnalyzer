@@ -1,12 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Transaction;
 
@@ -14,7 +9,7 @@ public class DateTimeConverter : ITypeConverter
 {
     public object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
     {
-        if(string.IsNullOrWhiteSpace(text))
+        if (string.IsNullOrWhiteSpace(text))
             return DateTime.MinValue;
 
         try

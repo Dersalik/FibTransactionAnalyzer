@@ -25,7 +25,7 @@ public class MonetaryValueConverterTests
     public void ConvertFromString_ValidInput_ReturnsMonetaryValue()
     {
         // Arrange
-        var input = "100.50 USD"; 
+        var input = "100.50 USD";
 
         // Act
         var result = _converter.ConvertFromString(input, _mockReaderRow.Object, _mockMemberMapData.Object);
@@ -46,7 +46,7 @@ public class MonetaryValueConverterTests
 
         // Assert
         var monetaryValue = Assert.IsType<MonetaryValue>(result);
-        Assert.Equal(0, monetaryValue.Amount); 
+        Assert.Equal(0, monetaryValue.Amount);
         Assert.Equal(Currency.IQD, monetaryValue.Currency);
     }
 

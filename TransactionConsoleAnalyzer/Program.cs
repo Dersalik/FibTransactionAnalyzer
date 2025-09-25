@@ -7,7 +7,7 @@ try
 {
     Console.WriteLine("Please enter path for the file to be analyzed");
     var filePath = Console.ReadLine();
-    
+
     // Read from file path
     var allTransactions = await transactionReader.ReadTransactionsAsync(filePath);
 

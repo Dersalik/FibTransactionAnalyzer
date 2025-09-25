@@ -22,11 +22,11 @@ namespace Transaction.Test.Unit
         }
 
         [Theory]
-        [InlineData("11:06:44 AM", 11, 6, 44)]      
-        [InlineData("01:30:15 PM", 13, 30, 15)]     
-        [InlineData("9:45:30 PM", 21, 45, 30)]      
-        [InlineData("12:00:00 AM", 0, 0, 0)]        
-        [InlineData("12:00:00 PM", 12, 0, 0)]       
+        [InlineData("11:06:44 AM", 11, 6, 44)]
+        [InlineData("01:30:15 PM", 13, 30, 15)]
+        [InlineData("9:45:30 PM", 21, 45, 30)]
+        [InlineData("12:00:00 AM", 0, 0, 0)]
+        [InlineData("12:00:00 PM", 12, 0, 0)]
         public void ConvertFromString_Valid12HourFormat_ReturnsTimeSpan(string input, int expectedHour, int expectedMinute, int expectedSecond)
         {
             // Act
@@ -42,10 +42,10 @@ namespace Transaction.Test.Unit
         }
 
         [Theory]
-        [InlineData("14:30:45", 14, 30, 45)]        
-        [InlineData("09:15:30", 9, 15, 30)]         
-        [InlineData("23:59:59", 23, 59, 59)]        
-        [InlineData("00:00:01", 0, 0, 1)]           
+        [InlineData("14:30:45", 14, 30, 45)]
+        [InlineData("09:15:30", 9, 15, 30)]
+        [InlineData("23:59:59", 23, 59, 59)]
+        [InlineData("00:00:01", 0, 0, 1)]
         public void ConvertFromString_Valid24HourFormat_ReturnsTimeSpan(string input, int expectedHour, int expectedMinute, int expectedSecond)
         {
             // Act
@@ -61,9 +61,9 @@ namespace Transaction.Test.Unit
         }
 
         [Theory]
-        [InlineData("2:30 PM", 14, 30, 0)]         
-        [InlineData("10:45 AM", 10, 45, 0)]         
-        [InlineData("12:00 AM", 0, 0, 0)]          
+        [InlineData("2:30 PM", 14, 30, 0)]
+        [InlineData("10:45 AM", 10, 45, 0)]
+        [InlineData("12:00 AM", 0, 0, 0)]
         public void ConvertFromString_ValidTimeWithoutSeconds_ReturnsTimeSpan(string input, int expectedHour, int expectedMinute, int expectedSecond)
         {
             // Act
@@ -79,7 +79,7 @@ namespace Transaction.Test.Unit
         }
 
         [Theory]
-        [InlineData("02:30:45")]                   
+        [InlineData("02:30:45")]
         [InlineData("1.02:30:45")]
         public void ConvertFromString_TimeSpanFormat_ReturnsTimeSpan(string input)
         {
@@ -111,10 +111,10 @@ namespace Transaction.Test.Unit
 
         [Theory]
         [InlineData("invalid time")]
-        [InlineData("25:61:61")]                    
-        [InlineData("13:30 PM")]                   
+        [InlineData("25:61:61")]
+        [InlineData("13:30 PM")]
         [InlineData("not a time")]
-        [InlineData("1:2:3:4:5")]                   
+        [InlineData("1:2:3:4:5")]
         public void ConvertFromString_InvalidFormat_ThrowsTypeConverterException(string invalidInput)
         {
             // Act & Assert
@@ -132,7 +132,7 @@ namespace Transaction.Test.Unit
         [Theory]
         [InlineData(11, 6, 44, "11:06:44 AM")]
         [InlineData(13, 30, 15, "1:30:15 PM")]
-        [InlineData(12, 0, 0, "12:00:00 PM")]     
+        [InlineData(12, 0, 0, "12:00:00 PM")]
         [InlineData(23, 59, 59, "11:59:59 PM")]
         public void ConvertToString_ValidTimeSpan_ReturnsFormattedString(int hours, int minutes, int seconds, string expected)
         {
@@ -150,7 +150,7 @@ namespace Transaction.Test.Unit
         public void ConvertToString_TimeSpanWithDays_ReturnsFormattedString()
         {
             // Arrange
-            var timeSpan = new TimeSpan(1, 2, 30, 45); 
+            var timeSpan = new TimeSpan(1, 2, 30, 45);
 
             // Act
             var result = _converter.ConvertToString(timeSpan, _mockWriterRow.Object, _mockMemberMapData.Object);
