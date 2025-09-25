@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TransactionAnalyzer\TransactionAnalyzer.csproj" />
-    <ProjectReference Include="..\TransactionReader\Transaction.csproj" />
+    <ProjectReference Include="..\Transaction\Transaction.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -65,7 +65,7 @@ jobs:
         echo "- **Build Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Projects Built" >> $GITHUB_STEP_SUMMARY
-        echo "- TransactionReader (Transaction.csproj)" >> $GITHUB_STEP_SUMMARY
+        echo "- Transaction (Transaction.csproj)" >> $GITHUB_STEP_SUMMARY
         echo "- TransactionAnalyzer" >> $GITHUB_STEP_SUMMARY
         echo "- TransactionConsoleAnalyzer" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY

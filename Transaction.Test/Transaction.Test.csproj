@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\TransactionReader\Transaction.csproj" />
+	  <ProjectReference Include="..\Transaction\Transaction.csproj" />
 	</ItemGroup>
 
 </Project>
