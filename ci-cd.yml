@@ -1,8 +1,4 @@
-# Simple CI/CD Pipeline for Transaction Analyzer
-# This workflow focuses on the three essential tasks:
-# 1. Building all projects to catch compilation errors
-# 2. Running both test projects to verify functionality
-# 3. Uploading test results so you can see what passed/failed
+
 
 name: Build and Test
 
