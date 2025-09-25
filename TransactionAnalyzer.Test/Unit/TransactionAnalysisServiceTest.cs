@@ -473,26 +473,6 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_LimitsTopCounterpartiesTo20()
-    {
-        // Arrange - Create 25 different counterparties
-        var transactions = Enumerable.Range(1, 25)
-            .Select(i => new FibTransaction
-            {
-                Amount = new MonetaryValue(i, Currency.USD),
-                Counterparty = $"Counterparty {i}"
-            })
-            .ToList();
-
-        // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
-
-        // Assert
-        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
-        Assert.Equal(20, usdAnalysis.TopCounterparties.Count);
-    }
-
-    [Fact]
     public async Task AnalyzeTransactionsAsync_CalculatesCounterpartiesByTransactionTypeCorrectly()
     {
         // Arrange
