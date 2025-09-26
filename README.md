@@ -31,20 +31,24 @@ The tool supports multiple currencies (USD, EUR, IQD) and provides deep insights
 ## Screenshots
 
 *Dashboard Overview*
-<img width="1920" height="587" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 1_32_49 AM" src="https://github.com/user-attachments/assets/e4d671b6-4c56-426f-bbad-3e0921a28680" />
+
+<img width="1737" height="711" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 4_33_49 PM" src="https://github.com/user-attachments/assets/d65be72f-92b4-4798-82a2-b0005acc1580" />
 
 *Monthly Cash Flow Analysis*  
+
 <img width="787" height="525" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 1_34_39 AM" src="https://github.com/user-attachments/assets/c9890dc8-d159-438e-936b-f067bf2ed42d" />
 
 *Transaction Type Breakdown*
+
 <img width="788" height="513" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 12_08_24 AM" src="https://github.com/user-attachments/assets/16c60043-c275-482f-8a8a-7429ab214050" />
 
 *Top Counterparties*
 
 <img width="769" height="850" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 1_41_38 AM" src="https://github.com/user-attachments/assets/d113bb4d-1561-48a7-a894-39ca84ef9734" />
 
-*Balance Tracking Over Time*
-<img width="797" height="544" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 1_31_30 AM" src="https://github.com/user-attachments/assets/abb0fc11-fe42-4a88-9290-411463280233" />
+*Counterparties - Sent vs Received*
+
+<img width="1673" height="676" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 4_31_37 PM" src="https://github.com/user-attachments/assets/7c0ee6c7-987c-499a-a6b3-0cacd5187577" />
 
 ## Quick Start
 
