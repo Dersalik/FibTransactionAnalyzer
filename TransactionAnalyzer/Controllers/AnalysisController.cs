@@ -55,8 +55,8 @@ public class AnalysisController : Controller
             }
 
             var analysisResult = await _analysisService.AnalyzeTransactionsAsync(
-                transactions, 
-                ignoreInternalTransactions, 
+                transactions,
+                ignoreInternalTransactions,
                 dateFrom ?? DateTime.MinValue,
                 dateTo ?? DateTime.MaxValue
                 );

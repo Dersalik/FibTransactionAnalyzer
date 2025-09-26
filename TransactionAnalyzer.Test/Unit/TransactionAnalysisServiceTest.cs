@@ -408,7 +408,7 @@ public class TransactionAnalysisServiceTest
 
         var transferAnalysis = usdAnalysis.TransactionTypeAnalyses.First(t => t.TransactionType == "TRANSFER");
         Assert.Equal(2, transferAnalysis.Count);
-        Assert.Equal(150m, transferAnalysis.TotalAmount); 
+        Assert.Equal(150m, transferAnalysis.TotalAmount);
         Assert.Equal(100m, transferAnalysis.LargestAmount);
 
         var paymentAnalysis = usdAnalysis.TransactionTypeAnalyses.First(t => t.TransactionType == "PAYMENT");
@@ -580,7 +580,7 @@ public class TransactionAnalysisServiceTest
         Assert.Equal("Test Company", testCompany.Counterparty);
         Assert.Equal(200m, testCompany.AmountSent);
         Assert.Equal(500m, testCompany.AmountReceived);
-        Assert.Equal(300m, testCompany.NetAmount); 
+        Assert.Equal(300m, testCompany.NetAmount);
 
         Assert.Equal(testCompany.AmountReceived - testCompany.AmountSent, testCompany.NetAmount);
     }
