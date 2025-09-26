@@ -78,6 +78,9 @@ public class CounterpartyAnalysis
     public int TransactionCount { get; set; }
     public decimal TotalAmount { get; set; }
     public decimal AverageAmount => TransactionCount > 0 ? TotalAmount / TransactionCount : 0;
+    public decimal AmountSent { get; set; }
+    public decimal AmountReceived { get; set; }
+    public decimal NetAmount => AmountReceived - AmountSent;
 }
 
 public class CounterpartyTransactionTypeAnalysis

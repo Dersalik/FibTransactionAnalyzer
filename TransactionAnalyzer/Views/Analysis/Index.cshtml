@@ -45,6 +45,30 @@
                             </div>
                         </div>
 
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Date Range Filter (Optional)</label>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="dateFrom" class="form-label">From Date</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="dateFrom"
+                                           name="dateFrom">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="dateTo" class="form-label">To Date</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="dateTo"
+                                           name="dateTo">
+                                </div>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-calendar me-1"></i>
+                                Filter transactions within the specified date range. Leave empty to include all transactions.
+                            </div>
+                        </div>
+
                         @if (!ViewData.ModelState.IsValid)
                         {
                             <div class="alert alert-danger" role="alert">
@@ -79,9 +103,31 @@
         const form = document.querySelector('.needs-validation');
         const fileInput = document.getElementById('file');
         const analyzeBtn = document.getElementById('analyzeBtn');
+        const dateFromInput = document.getElementById('dateFrom');
+        const dateToInput = document.getElementById('dateTo');
 
         form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
+            let isValid = form.checkValidity();
+
+            // Custom validation for date range
+            if (dateFromInput.value && dateToInput.value) {
+                const fromDate = new Date(dateFromInput.value);
+                const toDate = new Date(dateToInput.value);
+
+                if (fromDate > toDate) {
+                    dateFromInput.setCustomValidity('From date must be before To date');
+                    dateToInput.setCustomValidity('To date must be after From date');
+                    isValid = false;
+                } else {
+                    dateFromInput.setCustomValidity('');
+                    dateToInput.setCustomValidity('');
+                }
+            } else {
+                dateFromInput.setCustomValidity('');
+                dateToInput.setCustomValidity('');
+            }
+
+            if (!isValid) {
                 event.preventDefault();
                 event.stopPropagation();
             } else {
@@ -90,6 +136,25 @@
             }
             form.classList.add('was-validated');
         });
+
+        // Date validation on change
+        function validateDateRange() {
+            if (dateFromInput.value && dateToInput.value) {
+                const fromDate = new Date(dateFromInput.value);
+                const toDate = new Date(dateToInput.value);
+
+                if (fromDate > toDate) {
+                    dateFromInput.setCustomValidity('From date must be before To date');
+                    dateToInput.setCustomValidity('To date must be after From date');
+                } else {
+                    dateFromInput.setCustomValidity('');
+                    dateToInput.setCustomValidity('');
+                }
+            }
+        }
+
+        dateFromInput.addEventListener('change', validateDateRange);
+        dateToInput.addEventListener('change', validateDateRange);
 
         fileInput.addEventListener('change', function() {
             const file = this.files[0];
@@ -135,6 +200,10 @@
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
         }
 
+        .form-control:invalid {
+            border-color: #dc3545;
+        }
+
     .form-check-input {
         border-radius: 6px;
         border: 2px solid #e9ecef;
@@ -161,5 +230,9 @@
     body {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         min-height: 100vh;
+    }
+
+    .invalid-feedback {
+        display: block;
     }
 </style>

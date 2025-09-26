@@ -29,7 +29,7 @@ public class AnalysisController : Controller
     [HttpPost]
     [RequestSizeLimit(10 * 1024 * 1024)] // 10MB limit
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UploadAndAnalyze(IFormFile file, bool ignoreInternalTransactions)
+    public async Task<IActionResult> UploadAndAnalyze(IFormFile file, bool ignoreInternalTransactions, DateTime? dateFrom, DateTime? dateTo)
     {
         if (file == null || file.Length == 0)
         {
@@ -54,7 +54,12 @@ public class AnalysisController : Controller
                 transactions = await _transactionReader.ReadTransactionsAsync(stream);
             }
 
-            var analysisResult = await _analysisService.AnalyzeTransactionsAsync(transactions, ignoreInternalTransactions);
+            var analysisResult = await _analysisService.AnalyzeTransactionsAsync(
+                transactions, 
+                ignoreInternalTransactions, 
+                dateFrom ?? DateTime.MinValue,
+                dateTo ?? DateTime.MaxValue
+                );
 
             _logger.LogInformation("Analysis completed. Total transactions: {Total}, Filtered: {Filtered}",
                 analysisResult.TotalTransactionCount, analysisResult.FilteredTransactionCount);

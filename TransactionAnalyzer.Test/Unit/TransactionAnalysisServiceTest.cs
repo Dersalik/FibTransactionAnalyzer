@@ -135,7 +135,7 @@ public class TransactionAnalysisServiceTest
         var transactions = CreateTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.NotNull(result);
@@ -152,7 +152,7 @@ public class TransactionAnalysisServiceTest
         var transactions = CreateTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, true);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, true, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.Equal(3, result.TotalTransactionCount);
@@ -166,7 +166,7 @@ public class TransactionAnalysisServiceTest
         var transactions = new List<FibTransaction>();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.NotNull(result);
@@ -180,7 +180,7 @@ public class TransactionAnalysisServiceTest
     {
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _service.AnalyzeTransactionsAsync(null, false));
+            _service.AnalyzeTransactionsAsync(null, false, DateTime.MinValue, DateTime.MaxValue));
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class TransactionAnalysisServiceTest
         var transactions = CreateMultiCurrencyTransactions();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.Equal(3, result.CurrencyAnalyses.Count);
@@ -215,7 +215,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -237,7 +237,7 @@ public class TransactionAnalysisServiceTest
         var transactions = CreateMonthlyTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -271,7 +271,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -295,7 +295,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -343,7 +343,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -375,7 +375,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -400,7 +400,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -408,7 +408,7 @@ public class TransactionAnalysisServiceTest
 
         var transferAnalysis = usdAnalysis.TransactionTypeAnalyses.First(t => t.TransactionType == "TRANSFER");
         Assert.Equal(2, transferAnalysis.Count);
-        Assert.Equal(150m, transferAnalysis.TotalAmount); // 100 + 50 (absolute)
+        Assert.Equal(150m, transferAnalysis.TotalAmount); 
         Assert.Equal(100m, transferAnalysis.LargestAmount);
 
         var paymentAnalysis = usdAnalysis.TransactionTypeAnalyses.First(t => t.TransactionType == "PAYMENT");
@@ -429,7 +429,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -450,27 +450,37 @@ public class TransactionAnalysisServiceTest
     {
         // Arrange
         var transactions = new List<FibTransaction>
-        {
-            new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Big Company" },
-            new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "Big Company" },
-            new() { Amount = new MonetaryValue(-200m, Currency.USD), Counterparty = "Huge Vendor" },
-            new() { Amount = new MonetaryValue(-25m, Currency.USD), Counterparty = "Small Store" },
-            new() { Amount = new MonetaryValue(0m, Currency.USD), Counterparty = "" } // Empty counterparty should be ignored
-        };
+    {
+        new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Big Company" },
+        new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "Big Company" },
+        new() { Amount = new MonetaryValue(-200m, Currency.USD), Counterparty = "Huge Vendor" },
+        new() { Amount = new MonetaryValue(-25m, Currency.USD), Counterparty = "Small Store" },
+        new() { Amount = new MonetaryValue(0m, Currency.USD), Counterparty = "" }
+    };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
-        Assert.Equal(3, usdAnalysis.TopCounterparties.Count); // Empty counterparty filtered out
+        Assert.Equal(3, usdAnalysis.TopCounterparties.Count);
 
-        // Should be ordered by total amount descending
-        var topCounterparty = usdAnalysis.TopCounterparties.First();
-        Assert.Equal("Huge Vendor", topCounterparty.Counterparty);
-        Assert.Equal(200m, topCounterparty.TotalAmount);
-        Assert.Equal(1, topCounterparty.TransactionCount);
+        var bigCompany = usdAnalysis.TopCounterparties.First(c => c.Counterparty == "Big Company");
+        Assert.Equal("Big Company", bigCompany.Counterparty);
+        Assert.Equal(150m, bigCompany.TotalAmount);
+        Assert.Equal(2, bigCompany.TransactionCount);
+
+        var hugeVendor = usdAnalysis.TopCounterparties.First(c => c.Counterparty == "Huge Vendor");
+        Assert.Equal("Huge Vendor", hugeVendor.Counterparty);
+        Assert.Equal(200m, hugeVendor.TotalAmount);
+        Assert.Equal(1, hugeVendor.TransactionCount);
+
+        var smallStore = usdAnalysis.TopCounterparties.First(c => c.Counterparty == "Small Store");
+        Assert.Equal("Small Store", smallStore.Counterparty);
+        Assert.Equal(25m, smallStore.TotalAmount);
+        Assert.Equal(1, smallStore.TransactionCount);
     }
+
 
     [Fact]
     public async Task AnalyzeTransactionsAsync_CalculatesCounterpartiesByTransactionTypeCorrectly()
@@ -485,7 +495,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -496,7 +506,83 @@ public class TransactionAnalysisServiceTest
 
         var transferCounterparties = usdAnalysis.CounterpartiesByTransactionType["TRANSFER"];
         Assert.Equal(2, transferCounterparties.Count);
-        Assert.Equal("Company B", transferCounterparties.First().Counterparty); // Ordered by amount descending
+        Assert.Equal("Company B", transferCounterparties.First().Counterparty);
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CalculatesCounterpartyAmountsSentReceivedAndNetCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+    {
+        new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Company A" },
+        new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "Company A" },
+        new() { Amount = new MonetaryValue(-75m, Currency.USD), Counterparty = "Company A" },
+        new() { Amount = new MonetaryValue(-150m, Currency.USD), Counterparty = "Company B" },
+        new() { Amount = new MonetaryValue(-50m, Currency.USD), Counterparty = "Company B" },
+        new() { Amount = new MonetaryValue(300m, Currency.USD), Counterparty = "Company C" },
+        new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "" }
+    };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(3, usdAnalysis.TopCounterparties.Count);
+
+        // Find Company A
+        var companyA = usdAnalysis.TopCounterparties.First(c => c.Counterparty == "Company A");
+        Assert.Equal(3, companyA.TransactionCount);
+        Assert.Equal(225m, companyA.TotalAmount);
+        Assert.Equal(75m, companyA.AmountSent);
+        Assert.Equal(150m, companyA.AmountReceived);
+        Assert.Equal(75m, companyA.NetAmount);
+
+        // Find Company B
+        var companyB = usdAnalysis.TopCounterparties.First(c => c.Counterparty == "Company B");
+        Assert.Equal(2, companyB.TransactionCount);
+        Assert.Equal(200m, companyB.TotalAmount);
+        Assert.Equal(200m, companyB.AmountSent);
+        Assert.Equal(0m, companyB.AmountReceived);
+        Assert.Equal(-200m, companyB.NetAmount);
+
+        // Find Company C
+        var companyC = usdAnalysis.TopCounterparties.First(c => c.Counterparty == "Company C");
+        Assert.Equal(1, companyC.TransactionCount);
+        Assert.Equal(300m, companyC.TotalAmount);
+        Assert.Equal(0m, companyC.AmountSent);
+        Assert.Equal(300m, companyC.AmountReceived);
+        Assert.Equal(300m, companyC.NetAmount);
+
+        Assert.Contains("Company A", usdAnalysis.TopCounterparties.Select(c => c.Counterparty));
+        Assert.Contains("Company B", usdAnalysis.TopCounterparties.Select(c => c.Counterparty));
+        Assert.Contains("Company C", usdAnalysis.TopCounterparties.Select(c => c.Counterparty));
+    }
+
+    [Fact]
+    public async Task AnalyzeTransactionsAsync_CounterpartyNetAmountCalculatedProperty_WorksCorrectly()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(500m, Currency.USD), Counterparty = "Test Company" },
+            new() { Amount = new MonetaryValue(-200m, Currency.USD), Counterparty = "Test Company" }
+        };
+
+        // Act
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        var testCompany = usdAnalysis.TopCounterparties.First();
+
+        Assert.Equal("Test Company", testCompany.Counterparty);
+        Assert.Equal(200m, testCompany.AmountSent);
+        Assert.Equal(500m, testCompany.AmountReceived);
+        Assert.Equal(300m, testCompany.NetAmount); 
+
+        Assert.Equal(testCompany.AmountReceived - testCompany.AmountSent, testCompany.NetAmount);
     }
 
     #endregion
@@ -516,11 +602,11 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
-        Assert.Equal(116.67m, Math.Round(usdAnalysis.AverageMonthlyIncome, 2)); // (100 + 200 + 50) / 3
+        Assert.Equal(116.67m, Math.Round(usdAnalysis.AverageMonthlyIncome, 2));
         Assert.Equal(200m, usdAnalysis.MaxMonthlyIncome);
         Assert.Equal(50m, usdAnalysis.MinMonthlyIncome);
 
@@ -544,7 +630,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -570,7 +656,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, true);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, true, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.Equal(2, result.TotalTransactionCount);
@@ -590,7 +676,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -609,7 +695,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false);
+        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
