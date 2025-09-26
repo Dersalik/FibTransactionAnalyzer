@@ -15,9 +15,9 @@ public class TransactionAnalysisService : ITransactionAnalysisService
         var allTransactions = transactions.ToList();
 
         var filteredTransactions = allTransactions
-            .Where(t => t.Date >= dateFrom) 
+            .Where(t => t.Date >= dateFrom)
             .Where(t => t.Date <= dateTo)
-            .Where(t => !ignoreInternalTransactions || t.TransactionType != "MONEY_BOX_TRANSFER") 
+            .Where(t => !ignoreInternalTransactions || t.TransactionType != "MONEY_BOX_TRANSFER")
             .ToList();
 
         var result = new TransactionAnalysisResult
