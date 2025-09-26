@@ -5,20 +5,20 @@ namespace TransactionAnalyzer.Services;
 
 public class TransactionAnalysisService : ITransactionAnalysisService
 {
-    public async Task<TransactionAnalysisResult> AnalyzeTransactionsAsync(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions)
+    public async Task<TransactionAnalysisResult> AnalyzeTransactionsAsync(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo)
     {
-        return await Task.Run(() => AnalyzeTransactions(transactions, ignoreInternalTransactions));
+        return await Task.Run(() => AnalyzeTransactions(transactions, ignoreInternalTransactions, dateFrom, dateTo));
     }
 
-    private TransactionAnalysisResult AnalyzeTransactions(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions)
+    private TransactionAnalysisResult AnalyzeTransactions(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo)
     {
         var allTransactions = transactions.ToList();
 
-        var filteredTransactions = ignoreInternalTransactions
-            ? allTransactions
-            .Where(t => t.TransactionType != "MONEY_BOX_TRANSFER")
-            .ToList()
-            : allTransactions;
+        var filteredTransactions = allTransactions
+            .Where(t => t.Date >= dateFrom) 
+            .Where(t => t.Date <= dateTo)
+            .Where(t => !ignoreInternalTransactions || t.TransactionType != "MONEY_BOX_TRANSFER") 
+            .ToList();
 
         var result = new TransactionAnalysisResult
         {
@@ -189,9 +189,10 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             {
                 Counterparty = g.Key,
                 TransactionCount = g.Count(),
-                TotalAmount = g.Sum(t => Math.Abs(t.Amount.Amount))
+                TotalAmount = g.Sum(t => Math.Abs(t.Amount.Amount)),
+                AmountSent = g.Where(t => t.Amount.Amount < 0).Sum(t => Math.Abs(t.Amount.Amount)),
+                AmountReceived = g.Where(t => t.Amount.Amount > 0).Sum(t => Math.Abs(t.Amount.Amount))
             })
-            .OrderByDescending(c => c.TotalAmount)
             .ToList();
     }
 
