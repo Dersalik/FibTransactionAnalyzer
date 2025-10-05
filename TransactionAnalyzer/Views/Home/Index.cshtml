@@ -2,176 +2,173 @@
     ViewData["Title"] = "Transaction Analyzer";
 }
 
-<div class="hero-section">
+<style>
+    .hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 0;
+        text-align: center;
+    }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero .highlight {
+            color: #ffd700;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+    .btn-primary {
+        background: #10b981;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+    .features {
+        padding: 60px 0;
+        background: #f8fafc;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 30px 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        transition: transform 0.3s;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .feature-card h4 {
+        color: #2d3748;
+        margin-bottom: 15px;
+    }
+
+    .stats {
+        background: #2d3748;
+        color: white;
+        padding: 50px 0;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #10b981;
+    }
+
+    .cta {
+        padding: 60px 0;
+        text-align: center;
+        background: white;
+    }
+</style>
+
+<div class="hero">
     <div class="container">
-        <div class="row align-items-center min-vh-75">
-            <div class="col-lg-6">
-                <div class="hero-content">
-                    <h1 class="hero-title">
-                        <span class="text-primary">Smart</span> Financial
-                        <br>Transaction Analysis
-                    </h1>
-                    <p class="hero-subtitle">
-                        Upload your transaction data and get comprehensive insights with detailed analytics,
-                        trends, and visualizations to understand your financial patterns.
-                    </p>
-                    <div class="hero-actions">
-                        <a asp-controller="Analysis" asp-action="Index" class="btn btn-primary btn-lg me-3">
-                            <i class="fas fa-upload me-2"></i>
-                            Start Analysis
-                        </a>
-                        <a href="#features" class="btn btn-outline-secondary btn-lg">
-                            Learn More
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="hero-visual">
-                    <div class="dashboard-preview">
-                        <div class="chart-container">
-                            <div class="chart-header">
-                                <h6>Monthly Income Analysis</h6>
-                                <span class="trend-up">+12.5%</span>
-                            </div>
-                            <div class="chart-bars">
-                                <div class="bar" style="height: 60%;"></div>
-                                <div class="bar" style="height: 80%;"></div>
-                                <div class="bar" style="height: 90%;"></div>
-                                <div class="bar active" style="height: 100%;"></div>
-                                <div class="bar" style="height: 75%;"></div>
-                                <div class="bar" style="height: 85%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <h1><span class="highlight">Smart</span> Financial Analysis</h1>
+        <p>Upload your FIB transaction data and get instant insights with beautiful visualizations</p>
+        <a asp-controller="Analysis" asp-action="Index" class="btn btn-primary btn-lg">
+            <i class="fas fa-upload me-2"></i>Start Analysis
+        </a>
     </div>
 </div>
 
-<section id="features" class="features-section py-5">
+<section class="features">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="section-title">Comprehensive Financial Insights</h2>
-            <p class="section-subtitle">
-                Discover patterns, track trends, and make informed decisions with our powerful analysis tools
-            </p>
+            <h2>Key Features</h2>
         </div>
 
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-4">
+        <div class="row">
+            <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h4>Income & Expense Tracking</h4>
-                    <p>Monitor your monthly income patterns, track expenses, and analyze net income trends over time.</p>
+                    <h4>Income Tracking</h4>
+                    <p>Monitor your income patterns and track financial trends over time</p>
                 </div>
             </div>
 
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-coins"></i>
                     </div>
-                    <h4>Multi-Currency Support</h4>
-                    <p>Analyze transactions across different currencies with automatic conversion and separate analytics.</p>
+                    <h4>Multi-Currency</h4>
+                    <p>Support for multiple currencies with automatic conversion</p>
                 </div>
             </div>
 
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h4>Counterparty Analysis</h4>
-                    <p>Identify your top counterparties and understand transaction patterns with different entities.</p>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-tags"></i>
-                    </div>
-                    <h4>Transaction Classification</h4>
-                    <p>Automatically categorize transactions by type and analyze spending patterns across categories.</p>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-4">
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-chart-pie"></i>
                     </div>
-                    <h4>Balance Tracking</h4>
-                    <p>Track your account balance history and visualize how your finances evolve over time.</p>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <h4>Yearly & Monthly Reports</h4>
-                    <p>Generate comprehensive reports with yearly overviews and detailed monthly breakdowns.</p>
+                    <h4>Visual Reports</h4>
+                    <p>Beautiful charts and comprehensive financial reports</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="stats-section py-5 bg-light">
+<section class="stats">
     <div class="container">
         <div class="row text-center">
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Secure Processing</div>
-                </div>
+            <div class="col-md-4">
+                <div class="stat-number">100%</div>
+                <div>Secure</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <div class="stat-number">50+</div>
-                    <div class="stat-label">Transaction Types</div>
-                </div>
+            <div class="col-md-4">
+                <div class="stat-number">∞</div>
+                <div>Transactions</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <div class="stat-number">∞</div>
-                    <div class="stat-label">Transactions Supported</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <div class="stat-number">5★</div>
-                    <div class="stat-label">User Experience</div>
-                </div>
+            <div class="col-md-4">
+                <div class="stat-number">⚡</div>
+                <div>Fast Analysis</div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="cta-section py-5">
+<section class="cta">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 text-center">
-                <h2 class="mb-4">Ready to Analyze Your Transactions?</h2>
-                <p class="mb-4">
-                    Upload your transaction file and get instant insights into your financial data.
-                    Our analyzer supports FIB transaction formats and provides comprehensive analysis results.
-                </p>
-                <a asp-controller="Analysis" asp-action="Index" class="btn btn-primary btn-lg">
-                    <i class="fas fa-rocket me-2"></i>
-                    Get Started Now
-                </a>
-            </div>
-        </div>
+        <h2>Ready to Get Started?</h2>
+        <p class="mb-4">Upload your transaction file and discover powerful insights</p>
+        <a asp-controller="Analysis" asp-action="Index" class="btn btn-primary btn-lg">
+            <i class="fas fa-rocket me-2"></i>Analyze Now
+        </a>
     </div>
 </section>
 
 @section Scripts {
-    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 }
