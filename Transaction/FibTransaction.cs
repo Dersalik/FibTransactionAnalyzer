@@ -39,7 +39,7 @@ public class FibTransaction
     public string Status { get; set; } = string.Empty;
 
     [Name("TRANSACTION ID")]
-    public Guid? TransactionId { get; set; } = null;
+    public Guid? TransactionId { get; set; }
 
     [Name("NOTE")]
     public string Note { get; set; } = string.Empty;
