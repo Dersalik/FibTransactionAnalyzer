@@ -27,9 +27,9 @@ public class AnalysisController : Controller
     }
 
     [HttpPost]
-    [RequestSizeLimit(10 * 1024 * 1024)] // 10MB limit
+    [RequestSizeLimit(2 * 1024 * 1024)]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UploadAndAnalyze(IFormFile file, bool ignoreInternalTransactions, DateTime? dateFrom, DateTime? dateTo)
+    public async Task<IActionResult> UploadAndAnalyze(IFormFile file, bool ignoreInternalTransactions, DateTime? dateFrom, DateTime? dateTo, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
         {
@@ -51,20 +51,27 @@ public class AnalysisController : Controller
             IEnumerable<FibTransaction> transactions;
             using (var stream = file.OpenReadStream())
             {
-                transactions = await _transactionReader.ReadTransactionsAsync(stream);
+                IEnumerable<FibTransaction> tempTransactions = await _transactionReader.ReadTransactionsAsync(stream);
+                transactions = tempTransactions.ToList();
             }
 
             var analysisResult = await _analysisService.AnalyzeTransactionsAsync(
                 transactions,
                 ignoreInternalTransactions,
                 dateFrom ?? DateTime.MinValue,
-                dateTo ?? DateTime.MaxValue
+                dateTo ?? DateTime.MaxValue,
+                cancellationToken
                 );
 
             _logger.LogInformation("Analysis completed. Total transactions: {Total}, Filtered: {Filtered}",
                 analysisResult.TotalTransactionCount, analysisResult.FilteredTransactionCount);
 
             return View("Results", analysisResult);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Analysis cancelled by user for file: {FileName}", file.FileName);
+            return StatusCode(499);
         }
         catch (Exception ex)
         {

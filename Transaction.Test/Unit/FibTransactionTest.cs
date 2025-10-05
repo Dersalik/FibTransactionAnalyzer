@@ -20,7 +20,7 @@ public class FibTransactionTest
         Assert.Equal(DateTime.MinValue, transaction.Date);
         Assert.Equal(TimeSpan.Zero, transaction.Time);
         Assert.Equal(string.Empty, transaction.Status);
-        Assert.Equal(string.Empty, transaction.TransactionId);
+        Assert.Equal(null, transaction.TransactionId);
         Assert.Equal(string.Empty, transaction.Note);
     }
 

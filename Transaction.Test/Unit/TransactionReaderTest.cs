@@ -40,7 +40,7 @@ public class TransactionReaderTest
         // Arrange
         var csvContent = """
             ID,COUNTERPARTY,AMOUNT,FEE,BALANCE AFTER,TRANSACTION TYPE,DATE,TIME,STATUS,TRANSACTION ID,NOTE
-            11111111-1111-1111-1111-111111111111,Test User,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,TXN001,Test transaction
+            11111111-1111-1111-1111-111111111111,Test User,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,Test transaction
             """;
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csvContent));
