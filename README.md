@@ -64,7 +64,7 @@ The tool supports multiple currencies (USD, EUR, IQD) and provides deep insights
    ```bash
    dotnet run
    ```
-4. Open your browser to `https://localhost:7062`
+4. Open your browser to `https://localhost:8081`
 5. Upload your transaction CSV file and start analyzing
 
 **Supported File Format**
