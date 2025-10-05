@@ -48,9 +48,9 @@ public static class CurrencyExtensions
     {
         return currency switch
         {
-            Currency.USD => "en-US", // United States
-            Currency.EUR => "de-DE", // Germany (common Euro culture)
-            Currency.IQD => "ar-IQ", // Iraq
+            Currency.USD => "en-US", 
+            Currency.EUR => "de-DE",
+            Currency.IQD => "ar-IQ", 
             _ => throw new NotImplementedException(),
         };
     }

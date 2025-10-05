@@ -1,8 +1,14 @@
+using Microsoft.AspNetCore.Http.Timeouts;
 using Transaction;
 using TransactionAnalyzer.Models;
 using TransactionAnalyzer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<RequestTimeoutOptions>(options =>
+{
+    options.AddPolicy("MyTimeoutPolicy", TimeSpan.FromSeconds(5));
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

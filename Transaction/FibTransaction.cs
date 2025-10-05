@@ -1,12 +1,13 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace Transaction;
 
 public class FibTransaction
 {
     [Name("ID")]
-    [TypeConverter(typeof(GuidConverter))]
-    public Guid Id { get; set; } = Guid.Empty;
+    [Required]
+    public Guid Id { get; set; }
 
     [Name("COUNTERPARTY")]
     public string Counterparty { get; set; } = string.Empty;
@@ -38,7 +39,7 @@ public class FibTransaction
     public string Status { get; set; } = string.Empty;
 
     [Name("TRANSACTION ID")]
-    public string TransactionId { get; set; } = string.Empty;
+    public Guid? TransactionId { get; set; }
 
     [Name("NOTE")]
     public string Note { get; set; } = string.Empty;

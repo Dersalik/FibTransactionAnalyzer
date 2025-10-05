@@ -20,9 +20,9 @@ public class TransactionReaderIntegrationTests : IDisposable
         // Arrange
         var csvContent = """
             ID,COUNTERPARTY,AMOUNT,FEE,BALANCE AFTER,TRANSACTION TYPE,DATE,TIME,STATUS,TRANSACTION ID,NOTE
-            11111111-1111-1111-1111-111111111111,John Doe,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,TXN001,Payment for services
-            22222222-2222-2222-2222-222222222222,Jane Smith,250.75 EUR,2.50 EUR,1248.25 EUR,DEPOSIT,15/09/2023,10:30:45 AM,COMPLETED,TXN002,Salary deposit
-            33333333-3333-3333-3333-333333333333,Bob Wilson,50.00 IQD,1.00 IQD,1197.25 IQD,WITHDRAWAL,20/09/2023,2:15:30 PM,PENDING,TXN003,ATM withdrawal
+            11111111-1111-1111-1111-111111111111,John Doe,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,Payment for services
+            22222222-2222-2222-2222-222222222222,Jane Smith,250.75 EUR,2.50 EUR,1248.25 EUR,DEPOSIT,15/09/2023,10:30:45 AM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,Salary deposit
+            33333333-3333-3333-3333-333333333333,Bob Wilson,50.00 IQD,1.00 IQD,1197.25 IQD,WITHDRAWAL,20/09/2023,2:15:30 PM,PENDING,7ffeee20-418d-4679-afd3-e37a58315e3f,ATM withdrawal
             """;
 
         var filePath = CreateTempFile(csvContent);
@@ -45,7 +45,7 @@ public class TransactionReaderIntegrationTests : IDisposable
         Assert.Equal(new DateTime(2023, 9, 5), firstTransaction.Date);
         Assert.Equal(new TimeSpan(15, 13, 12), firstTransaction.Time); // 3:13:12 PM = 15:13:12
         Assert.Equal("COMPLETED", firstTransaction.Status);
-        Assert.Equal("TXN001", firstTransaction.TransactionId);
+        Assert.Equal(Guid.Parse("7ffeee20-418d-4679-afd3-e37a58315e3f"), firstTransaction.TransactionId);
         Assert.Equal("Payment for services", firstTransaction.Note);
 
         // Verify second transaction has different currency
@@ -69,7 +69,7 @@ public class TransactionReaderIntegrationTests : IDisposable
         for (int i = 1; i <= 1000; i++)
         {
             var guid = Guid.NewGuid();
-            csvBuilder.AppendLine($"{guid},User{i},{i * 10}.50 USD,{i}.00 USD,{1000 + i}.00 USD,TRANSFER,{05 + (i % 25):D2}/09/2023,{(i % 12) + 1}:30:00 PM,COMPLETED,TXN{i:D3},Note {i}");
+            csvBuilder.AppendLine($"{guid},User{i},{i * 10}.50 USD,{i}.00 USD,{1000 + i}.00 USD,TRANSFER,{05 + (i % 25):D2}/09/2023,{(i % 12) + 1}:30:00 PM,COMPLETED,{Guid.NewGuid()},Note {i}");
         }
 
         var filePath = CreateTempFile(csvBuilder.ToString());
@@ -95,9 +95,9 @@ public class TransactionReaderIntegrationTests : IDisposable
         // Arrange
         var csvContent = """
             ID,COUNTERPARTY,AMOUNT,FEE,BALANCE AFTER,TRANSACTION TYPE,DATE,TIME,STATUS,TRANSACTION ID,NOTE
-            11111111-1111-1111-1111-111111111111,USD User,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,TXN001,USD transaction
-            22222222-2222-2222-2222-222222222222,EUR User,250.75 EUR,2.50 EUR,1248.25 EUR,TRANSFER,15/09/2023,10:30:45 AM,COMPLETED,TXN002,EUR transaction
-            33333333-3333-3333-3333-333333333333,IQD User,1000.00 IQD,10.00 IQD,5000.00 IQD,TRANSFER,20/09/2023,2:15:30 PM,COMPLETED,TXN003,IQD transaction
+            11111111-1111-1111-1111-111111111111,USD User,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,USD transaction
+            22222222-2222-2222-2222-222222222222,EUR User,250.75 EUR,2.50 EUR,1248.25 EUR,TRANSFER,15/09/2023,10:30:45 AM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,EUR transaction
+            33333333-3333-3333-3333-333333333333,IQD User,1000.00 IQD,10.00 IQD,5000.00 IQD,TRANSFER,20/09/2023,2:15:30 PM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,IQD transaction
             """;
 
         var filePath = CreateTempFile(csvContent);
@@ -120,8 +120,8 @@ public class TransactionReaderIntegrationTests : IDisposable
         // Arrange
         var csvContent = """
             ID,COUNTERPARTY,AMOUNT,FEE,BALANCE AFTER,TRANSACTION TYPE,DATE,TIME,STATUS,TRANSACTION ID,NOTE
-            11111111-1111-1111-1111-111111111111,"Test User",100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,TXN001,"Payment for ""special"" services"
-            22222222-2222-2222-2222-222222222222,Test User 2,250.75 USD,2.50 USD,1248.25 USD,TRANSFER,15/09/2023,10:30:45 AM,COMPLETED,TXN002,"Note with, comma and newline
+            11111111-1111-1111-1111-111111111111,"Test User",100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,"Payment for ""special"" services"
+            22222222-2222-2222-2222-222222222222,Test User 2,250.75 USD,2.50 USD,1248.25 USD,TRANSFER,15/09/2023,10:30:45 AM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,"Note with, comma and newline
             continuation"
             """;
 
@@ -144,7 +144,7 @@ public class TransactionReaderIntegrationTests : IDisposable
         // Arrange
         var csvContent = """
             ID,COUNTERPARTY,AMOUNT,FEE,BALANCE AFTER,TRANSACTION TYPE,DATE,TIME,STATUS,TRANSACTION ID,NOTE
-            11111111-1111-1111-1111-111111111111,John Doe,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,TXN001,Test transaction
+            11111111-1111-1111-1111-111111111111,John Doe,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,3:13:12 PM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,Test transaction
             """;
 
         var filePath = CreateTempFile(csvContent);
@@ -190,9 +190,9 @@ public class TransactionReaderIntegrationTests : IDisposable
         // Arrange
         var csvContent = """
             ID,COUNTERPARTY,AMOUNT,FEE,BALANCE AFTER,TRANSACTION TYPE,DATE,TIME,STATUS,TRANSACTION ID,NOTE
-            11111111-1111-1111-1111-111111111111,Morning User,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,9:13:12 AM,COMPLETED,TXN001,Morning transaction
-            22222222-2222-2222-2222-222222222222,Evening User,250.75 USD,2.50 USD,1248.25 USD,TRANSFER,15/09/2023,11:30:45 PM,COMPLETED,TXN002,Evening transaction
-            33333333-3333-3333-3333-333333333333,Noon User,75.00 USD,1.50 USD,1321.75 USD,TRANSFER,20/09/2023,12:00:00 PM,COMPLETED,TXN003,Noon transaction
+            11111111-1111-1111-1111-111111111111,Morning User,100.50 USD,5.00 USD,1000.00 USD,TRANSFER,05/09/2023,9:13:12 AM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,Morning transaction
+            22222222-2222-2222-2222-222222222222,Evening User,250.75 USD,2.50 USD,1248.25 USD,TRANSFER,15/09/2023,11:30:45 PM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,Evening transaction
+            33333333-3333-3333-3333-333333333333,Noon User,75.00 USD,1.50 USD,1321.75 USD,TRANSFER,20/09/2023,12:00:00 PM,COMPLETED,7ffeee20-418d-4679-afd3-e37a58315e3f,Noon transaction
             """;
 
         var filePath = CreateTempFile(csvContent);

@@ -554,11 +554,11 @@
                                                                     <span class="text-muted">@transaction.Counterparty</span>
                                                                 </div>
                                                             }
-                                                            @if (!string.IsNullOrEmpty(transaction.TransactionId))
+                                                            @if (transaction.TransactionId.HasValue)
                                                             {
                                                                 <div class="col-12 mt-2">
                                                                     <strong>Transaction ID:</strong><br>
-                                                                    <code class="small">@transaction.TransactionId</code>
+                                                                    <code class="small">@transaction.TransactionId.Value</code>
                                                                 </div>
                                                             }
                                                             @if (!string.IsNullOrEmpty(transaction.Note))
