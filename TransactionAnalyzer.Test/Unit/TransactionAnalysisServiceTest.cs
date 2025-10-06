@@ -1,4 +1,4 @@
-﻿using TransactionAnalyzer.Services;
+using TransactionAnalyzer.Services;
 
 namespace Transaction.Test.Unit;
 
@@ -126,16 +126,16 @@ public class TransactionAnalysisServiceTest
 
     #endregion
 
-    #region AnalyzeTransactionsAsync Tests
+    #region AnalyzeTransactions Tests
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_WithValidTransactions_ReturnsCorrectResult()
+    public void AnalyzeTransactions_WithValidTransactions_ReturnsCorrectResult()
     {
         // Arrange
         var transactions = CreateTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.NotNull(result);
@@ -146,13 +146,13 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_WithIgnoreInternalTransactions_FiltersCorrectly()
+    public void AnalyzeTransactions_WithIgnoreInternalTransactions_FiltersCorrectly()
     {
-        // Arrange
+        // Arrange  
         var transactions = CreateTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, true, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, true, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.Equal(3, result.TotalTransactionCount);
@@ -160,13 +160,13 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_WithEmptyTransactions_ReturnsEmptyResult()
+    public void AnalyzeTransactions_WithEmptyTransactions_ReturnsEmptyResult()
     {
         // Arrange
         var transactions = new List<FibTransaction>();
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.NotNull(result);
@@ -176,21 +176,21 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_WithNullTransactions_ThrowsArgumentNullException()
+    public void AnalyzeTransactions_WithNullTransactions_ThrowsArgumentNullException()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _service.AnalyzeAsync(null, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None));
+        Assert.Throws<ArgumentNullException>(() =>
+            _service.Analyze(null, false, DateTime.MinValue, DateTime.MaxValue));
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_WithMultipleCurrencies_AnalyzesAllCurrencies()
+    public void AnalyzeTransactions_WithMultipleCurrencies_AnalyzesAllCurrencies()
     {
         // Arrange
         var transactions = CreateMultiCurrencyTransactions();
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.Equal(3, result.CurrencyAnalyses.Count);
@@ -199,25 +199,12 @@ public class TransactionAnalysisServiceTest
         Assert.Contains(Currency.IQD, result.CurrencyAnalyses.Keys);
     }
 
-    [Fact]
-    public async Task AnalyzeTransactionsAsync_WithCancelledToken_ThrowsTaskCanceledException()
-    {
-        // Arrange
-        var transactions = CreateTestTransactions();
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
-
-        // Act & Assert
-        await Assert.ThrowsAsync<TaskCanceledException>(() =>
-            _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, cts.Token));
-    }
-
     #endregion
 
     #region Currency Analysis Tests
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesBasicMetricsCorrectly()
+    public void AnalyzeTransactions_CalculatesBasicMetricsCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -228,7 +215,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -244,13 +231,13 @@ public class TransactionAnalysisServiceTest
     #region Monthly Analysis Tests
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesMonthlyAnalysisCorrectly()
+    public void AnalyzeTransactions_CalculatesMonthlyAnalysisCorrectly()
     {
         // Arrange
         var transactions = CreateMonthlyTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -274,7 +261,7 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_FiltersInvalidDatesFromMonthlyAnalysis()
+    public void AnalyzeTransactions_FiltersInvalidDatesFromMonthlyAnalysis()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -284,7 +271,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -296,7 +283,7 @@ public class TransactionAnalysisServiceTest
     #region Yearly Analysis Tests
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesYearlyAnalysisCorrectly()
+    public void AnalyzeTransactions_CalculatesYearlyAnalysisCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -308,7 +295,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -334,7 +321,7 @@ public class TransactionAnalysisServiceTest
     #region Balance History Tests
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesBalanceHistoryWithBalanceAfter()
+    public void AnalyzeTransactions_CalculatesBalanceHistoryWithBalanceAfter()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -356,7 +343,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -366,7 +353,7 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesRunningBalanceWhenBalanceAfterIsZero()
+    public void AnalyzeTransactions_CalculatesRunningBalanceWhenBalanceAfterIsZero()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -388,7 +375,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -402,7 +389,7 @@ public class TransactionAnalysisServiceTest
     #region Transaction Type Analysis Tests
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesTransactionTypeAnalysisCorrectly()
+    public void AnalyzeTransactions_CalculatesTransactionTypeAnalysisCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -413,7 +400,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -431,7 +418,7 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesLargestTransactionsByTypeCorrectly()
+    public void AnalyzeTransactions_CalculatesLargestTransactionsByTypeCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -442,7 +429,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -459,20 +446,20 @@ public class TransactionAnalysisServiceTest
     #region Counterparty Analysis Tests
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesTopCounterpartiesCorrectly()
+    public void AnalyzeTransactions_CalculatesTopCounterpartiesCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
-    {
-        new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Big Company" },
-        new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "Big Company" },
-        new() { Amount = new MonetaryValue(-200m, Currency.USD), Counterparty = "Huge Vendor" },
-        new() { Amount = new MonetaryValue(-25m, Currency.USD), Counterparty = "Small Store" },
-        new() { Amount = new MonetaryValue(0m, Currency.USD), Counterparty = "" }
-    };
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Big Company" },
+            new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "Big Company" },
+            new() { Amount = new MonetaryValue(-200m, Currency.USD), Counterparty = "Huge Vendor" },
+            new() { Amount = new MonetaryValue(-25m, Currency.USD), Counterparty = "Small Store" },
+            new() { Amount = new MonetaryValue(0m, Currency.USD), Counterparty = "" }
+        };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -494,9 +481,8 @@ public class TransactionAnalysisServiceTest
         Assert.Equal(1, smallStore.TransactionCount);
     }
 
-
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesCounterpartiesByTransactionTypeCorrectly()
+    public void AnalyzeTransactions_CalculatesCounterpartiesByTransactionTypeCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -508,7 +494,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -523,22 +509,22 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesCounterpartyAmountsSentReceivedAndNetCorrectly()
+    public void AnalyzeTransactions_CalculatesCounterpartyAmountsSentReceivedAndNetCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
-    {
-        new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Company A" },
-        new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "Company A" },
-        new() { Amount = new MonetaryValue(-75m, Currency.USD), Counterparty = "Company A" },
-        new() { Amount = new MonetaryValue(-150m, Currency.USD), Counterparty = "Company B" },
-        new() { Amount = new MonetaryValue(-50m, Currency.USD), Counterparty = "Company B" },
-        new() { Amount = new MonetaryValue(300m, Currency.USD), Counterparty = "Company C" },
-        new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "" }
-    };
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "Company A" },
+            new() { Amount = new MonetaryValue(50m, Currency.USD), Counterparty = "Company A" },
+            new() { Amount = new MonetaryValue(-75m, Currency.USD), Counterparty = "Company A" },
+            new() { Amount = new MonetaryValue(-150m, Currency.USD), Counterparty = "Company B" },
+            new() { Amount = new MonetaryValue(-50m, Currency.USD), Counterparty = "Company B" },
+            new() { Amount = new MonetaryValue(300m, Currency.USD), Counterparty = "Company C" },
+            new() { Amount = new MonetaryValue(100m, Currency.USD), Counterparty = "" }
+        };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -574,7 +560,7 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CounterpartyNetAmountCalculatedProperty_WorksCorrectly()
+    public void AnalyzeTransactions_CounterpartyNetAmountCalculatedProperty_WorksCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -584,7 +570,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -603,7 +589,7 @@ public class TransactionAnalysisServiceTest
     #region Statistics Tests
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_CalculatesIncomeStatisticsCorrectly()
+    public void AnalyzeTransactions_CalculatesIncomeStatisticsCorrectly()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -615,7 +601,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -633,7 +619,7 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_HandlesNoIncomeMonthsGracefully()
+    public void AnalyzeTransactions_HandlesNoIncomeMonthsGracefully()
     {
         // Arrange - Only expense transactions
         var transactions = new List<FibTransaction>
@@ -643,7 +629,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -659,7 +645,7 @@ public class TransactionAnalysisServiceTest
     #region Edge Cases
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_HandlesAllMoneyBoxTransfers()
+    public void AnalyzeTransactions_HandlesAllMoneyBoxTransfers()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -669,7 +655,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, true, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, true, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         Assert.Equal(2, result.TotalTransactionCount);
@@ -678,7 +664,7 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_HandlesTransactionsWithoutCounterparty()
+    public void AnalyzeTransactions_HandlesTransactionsWithoutCounterparty()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -689,7 +675,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -698,7 +684,7 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
-    public async Task AnalyzeTransactionsAsync_HandlesZeroAmountTransactions()
+    public void AnalyzeTransactions_HandlesZeroAmountTransactions()
     {
         // Arrange
         var transactions = new List<FibTransaction>
@@ -708,7 +694,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = _service.Analyze(transactions, false, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];

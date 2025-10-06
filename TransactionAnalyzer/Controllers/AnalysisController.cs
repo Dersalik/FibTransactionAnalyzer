@@ -60,8 +60,7 @@ public class AnalysisController : Controller
                 transactions,
                 ignoreInternalTransactions,
                 dateFrom ?? DateTime.MinValue,
-                dateTo ?? DateTime.MaxValue,
-                cancellationToken
+                dateTo ?? DateTime.MaxValue
                 );
 
             _logger.LogInformation("Analysis completed. Total transactions: {Total}, Filtered: {Filtered}",

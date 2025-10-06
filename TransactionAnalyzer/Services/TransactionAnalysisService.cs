@@ -5,17 +5,12 @@ namespace TransactionAnalyzer.Services;
 
 public class TransactionAnalysisService : ITransactionAnalysisService
 {
-    public async Task<TransactionAnalysisResult> AnalyzeAsync(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken = default)
+    public TransactionAnalysisResult Analyze(IEnumerable<FibTransaction> transactions, bool ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo)
     {
-        return await Task.Run(() => AnalyzeTransactions(transactions, ignoreInternalTransactions, dateFrom, dateTo, cancellationToken), cancellationToken);
+        return AnalyzeTransactions(transactions, ignoreInternalTransactions, dateFrom, dateTo);
     }
 
-    public TransactionAnalysisResult Analyze(IEnumerable<FibTransaction> transactions, bool ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
-    {
-        return AnalyzeTransactions(transactions, ignoreInternalTransactions, dateFrom, dateTo, cancellationToken);
-    }
-
-    private TransactionAnalysisResult AnalyzeTransactions(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
+    private TransactionAnalysisResult AnalyzeTransactions(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo)
     {
         if (transactions is null) throw new ArgumentNullException(nameof(transactions));
 
@@ -37,57 +32,49 @@ public class TransactionAnalysisService : ITransactionAnalysisService
 
         foreach (var currencyGroup in currencyGroups)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var currencyTransactions = currencyGroup.ToList();
-            var analysis = AnalyzeCurrency(currencyGroup.Key, currencyTransactions, cancellationToken);
+            var analysis = AnalyzeCurrency(currencyGroup.Key, currencyTransactions);
             result.CurrencyAnalyses[currencyGroup.Key] = analysis;
         }
 
         return result;
     }
 
-    private CurrencyAnalysis AnalyzeCurrency(Currency currency, List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private CurrencyAnalysis AnalyzeCurrency(Currency currency, List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var analysis = new CurrencyAnalysis
         {
             Currency = currency,
             TransactionCount = transactions.Count
         };
 
-        CalculateBasicMetrics(analysis, transactions, cancellationToken);
+        CalculateBasicMetrics(analysis, transactions);
 
-        analysis.MonthlyAnalyses = CalculateMonthlyAnalysis(transactions, cancellationToken);
-        analysis.BalanceHistory = CalculateBalanceHistory(transactions, cancellationToken);
-        analysis.YearlyAnalyses = CalculateYearlyAnalysis(transactions, cancellationToken);
+        analysis.MonthlyAnalyses = CalculateMonthlyAnalysis(transactions);
+        analysis.BalanceHistory = CalculateBalanceHistory(transactions);
+        analysis.YearlyAnalyses = CalculateYearlyAnalysis(transactions);
 
-        analysis.TransactionTypeAnalyses = CalculateTransactionTypeAnalysis(transactions, cancellationToken);
-        analysis.LargestTransactionsByType = CalculateLargestTransactionsByType(transactions, cancellationToken);
+        analysis.TransactionTypeAnalyses = CalculateTransactionTypeAnalysis(transactions);
+        analysis.LargestTransactionsByType = CalculateLargestTransactionsByType(transactions);
 
-        analysis.TopCounterparties = CalculateTopCounterparties(transactions, cancellationToken);
-        analysis.CounterpartiesByTransactionType = CalculateCounterpartiesByTransactionType(transactions, cancellationToken);
+        analysis.TopCounterparties = CalculateTopCounterparties(transactions);
+        analysis.CounterpartiesByTransactionType = CalculateCounterpartiesByTransactionType(transactions);
 
-        CalculateStatistics(analysis, cancellationToken);
+        CalculateStatistics(analysis);
 
         return analysis;
     }
 
-    private void CalculateBasicMetrics(CurrencyAnalysis analysis, List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private void CalculateBasicMetrics(CurrencyAnalysis analysis, List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         analysis.TotalInflow = transactions.Where(t => t.Amount.Amount > 0).Sum(t => t.Amount.Amount);
         analysis.TotalOutflow = transactions.Where(t => t.Amount.Amount < 0).Sum(t => Math.Abs(t.Amount.Amount));
         analysis.NetAmount = transactions.Sum(t => t.Amount.Amount);
         analysis.TotalFees = transactions.Sum(t => t.Fee.Amount);
     }
 
-    private List<MonthlyAnalysis> CalculateMonthlyAnalysis(List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private List<MonthlyAnalysis> CalculateMonthlyAnalysis(List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         return transactions
             .Where(t => t.Date != DateTime.MinValue) // Filter out invalid dates
             .GroupBy(t => new { t.Date.Year, t.Date.Month })
@@ -104,10 +91,8 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             .ToList();
     }
 
-    private List<BalanceTracking> CalculateBalanceHistory(List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private List<BalanceTracking> CalculateBalanceHistory(List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         // Sort transactions by date and time for accurate balance tracking
         var sortedTransactions = transactions
             .Where(t => t.Date != DateTime.MinValue)
@@ -119,8 +104,6 @@ public class TransactionAnalysisService : ITransactionAnalysisService
 
         foreach (var transaction in sortedTransactions)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (transaction.BalanceAfter.Amount != 0)
             {
                 balanceHistory.Add(new BalanceTracking
@@ -136,8 +119,6 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             decimal runningBalance = 0;
             foreach (var transaction in sortedTransactions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 runningBalance += transaction.Amount.Amount;
                 balanceHistory.Add(new BalanceTracking
                 {
@@ -150,10 +131,8 @@ public class TransactionAnalysisService : ITransactionAnalysisService
         return balanceHistory.OrderBy(b => b.Date).ToList();
     }
 
-    private List<YearlyAnalysis> CalculateYearlyAnalysis(List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private List<YearlyAnalysis> CalculateYearlyAnalysis(List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         return transactions
             .Where(t => t.Date != DateTime.MinValue)
             .GroupBy(t => t.Date.Year)
@@ -168,10 +147,8 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             .ToList();
     }
 
-    private List<TransactionTypeAnalysis> CalculateTransactionTypeAnalysis(List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private List<TransactionTypeAnalysis> CalculateTransactionTypeAnalysis(List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         return transactions
             .GroupBy(t => t.TransactionType)
             .Select(g => new TransactionTypeAnalysis
@@ -185,10 +162,8 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             .ToList();
     }
 
-    private List<TransactionTypeAnalysis> CalculateLargestTransactionsByType(List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private List<TransactionTypeAnalysis> CalculateLargestTransactionsByType(List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         return transactions
             .GroupBy(t => t.TransactionType)
             .Select(g =>
@@ -207,10 +182,8 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             .ToList();
     }
 
-    private List<CounterpartyAnalysis> CalculateTopCounterparties(List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private List<CounterpartyAnalysis> CalculateTopCounterparties(List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         return transactions
             .Where(t => !string.IsNullOrEmpty(t.Counterparty))
             .GroupBy(t => t.Counterparty)
@@ -225,10 +198,8 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             .ToList();
     }
 
-    private Dictionary<string, List<CounterpartyTransactionTypeAnalysis>> CalculateCounterpartiesByTransactionType(List<FibTransaction> transactions, CancellationToken cancellationToken)
+    private Dictionary<string, List<CounterpartyTransactionTypeAnalysis>> CalculateCounterpartiesByTransactionType(List<FibTransaction> transactions)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         return transactions
             .Where(t => !string.IsNullOrEmpty(t.Counterparty))
             .GroupBy(t => t.TransactionType)
@@ -248,10 +219,8 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             );
     }
 
-    private void CalculateStatistics(CurrencyAnalysis analysis, CancellationToken cancellationToken)
+    private void CalculateStatistics(CurrencyAnalysis analysis)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         if (analysis.MonthlyAnalyses.Any())
         {
             var incomes = analysis.MonthlyAnalyses.Select(m => m.Income).Where(i => i > 0).ToList();
