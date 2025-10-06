@@ -5,9 +5,11 @@ using TransactionAnalyzer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddRequestTimeouts();
+
 builder.Services.Configure<RequestTimeoutOptions>(options =>
 {
-    options.AddPolicy("MyTimeoutPolicy", TimeSpan.FromSeconds(5));
+    options.AddPolicy("MyTimeoutPolicy", TimeSpan.FromSeconds(2));
 });
 
 // Add services to the container.
@@ -27,6 +29,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseRequestTimeouts();
 
 app.UseAuthorization();
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.Timeouts;
+using Microsoft.AspNetCore.Mvc;
 using Transaction;
 using TransactionAnalyzer.Models;
 
@@ -29,6 +30,7 @@ public class AnalysisController : Controller
     [HttpPost]
     [RequestSizeLimit(2 * 1024 * 1024)]
     [ValidateAntiForgeryToken]
+    [RequestTimeout("MyTimeoutPolicy")]
     public async Task<IActionResult> UploadAndAnalyze(IFormFile file, bool ignoreInternalTransactions, DateTime? dateFrom, DateTime? dateTo, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
@@ -36,7 +38,6 @@ public class AnalysisController : Controller
             ModelState.AddModelError("file", "Please select a valid CSV file.");
             return View("Index");
         }
-
         if (!IsValidCsvFile(file))
         {
             ModelState.AddModelError("file", "Please upload a valid CSV file.");
@@ -55,23 +56,17 @@ public class AnalysisController : Controller
                 transactions = tempTransactions.ToList();
             }
 
-            var analysisResult = await _analysisService.AnalyzeTransactionsAsync(
+            var analysisResult = _analysisService.Analyze(
                 transactions,
                 ignoreInternalTransactions,
                 dateFrom ?? DateTime.MinValue,
-                dateTo ?? DateTime.MaxValue,
-                cancellationToken
+                dateTo ?? DateTime.MaxValue
                 );
 
             _logger.LogInformation("Analysis completed. Total transactions: {Total}, Filtered: {Filtered}",
                 analysisResult.TotalTransactionCount, analysisResult.FilteredTransactionCount);
 
             return View("Results", analysisResult);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogInformation("Analysis cancelled by user for file: {FileName}", file.FileName);
-            return StatusCode(499);
         }
         catch (Exception ex)
         {
