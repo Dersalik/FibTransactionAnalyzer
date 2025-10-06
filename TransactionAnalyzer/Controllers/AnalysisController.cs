@@ -68,11 +68,6 @@ public class AnalysisController : Controller
 
             return View("Results", analysisResult);
         }
-        catch (OperationCanceledException)
-        {
-            _logger.LogInformation("Analysis cancelled by user for file: {FileName}", file.FileName);
-            return StatusCode(408);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing transactions from file: {FileName}", file.FileName);
