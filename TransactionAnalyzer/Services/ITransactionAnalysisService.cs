@@ -4,5 +4,7 @@ namespace TransactionAnalyzer.Models;
 
 public interface ITransactionAnalysisService
 {
-    Task<TransactionAnalysisResult> AnalyzeTransactionsAsync(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken = default);
+    Task<TransactionAnalysisResult> AnalyzeAsync(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken = default);
+
+    TransactionAnalysisResult Analyze(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken = default);
 }

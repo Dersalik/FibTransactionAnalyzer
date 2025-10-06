@@ -135,7 +135,7 @@ public class TransactionAnalysisServiceTest
         var transactions = CreateTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -152,7 +152,7 @@ public class TransactionAnalysisServiceTest
         var transactions = CreateTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, true, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, true, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         Assert.Equal(3, result.TotalTransactionCount);
@@ -166,7 +166,7 @@ public class TransactionAnalysisServiceTest
         var transactions = new List<FibTransaction>();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -180,7 +180,7 @@ public class TransactionAnalysisServiceTest
     {
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _service.AnalyzeTransactionsAsync(null, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None));
+            _service.AnalyzeAsync(null, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None));
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class TransactionAnalysisServiceTest
         var transactions = CreateMultiCurrencyTransactions();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         Assert.Equal(3, result.CurrencyAnalyses.Count);
@@ -209,7 +209,7 @@ public class TransactionAnalysisServiceTest
 
         // Act & Assert
         await Assert.ThrowsAsync<TaskCanceledException>(() =>
-            _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, cts.Token));
+            _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, cts.Token));
     }
 
     #endregion
@@ -228,7 +228,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -250,7 +250,7 @@ public class TransactionAnalysisServiceTest
         var transactions = CreateMonthlyTestTransactions();
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -284,7 +284,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -308,7 +308,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -356,7 +356,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -388,7 +388,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -413,7 +413,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -442,7 +442,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -472,7 +472,7 @@ public class TransactionAnalysisServiceTest
     };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -508,7 +508,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -538,7 +538,7 @@ public class TransactionAnalysisServiceTest
     };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -584,7 +584,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -615,7 +615,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -643,7 +643,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -669,7 +669,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, true, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, true, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         Assert.Equal(2, result.TotalTransactionCount);
@@ -689,7 +689,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
@@ -708,7 +708,7 @@ public class TransactionAnalysisServiceTest
         };
 
         // Act
-        var result = await _service.AnalyzeTransactionsAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
+        var result = await _service.AnalyzeAsync(transactions, false, DateTime.MinValue, DateTime.MaxValue, CancellationToken.None);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];

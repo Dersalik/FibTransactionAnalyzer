@@ -5,26 +5,27 @@ namespace TransactionAnalyzer.Services;
 
 public class TransactionAnalysisService : ITransactionAnalysisService
 {
-    public async Task<TransactionAnalysisResult> AnalyzeTransactionsAsync(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken = default)
+    public async Task<TransactionAnalysisResult> AnalyzeAsync(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken = default)
     {
         return await Task.Run(() => AnalyzeTransactions(transactions, ignoreInternalTransactions, dateFrom, dateTo, cancellationToken), cancellationToken);
     }
 
+    public TransactionAnalysisResult Analyze(IEnumerable<FibTransaction> transactions, bool ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
+    {
+        return AnalyzeTransactions(transactions, ignoreInternalTransactions, dateFrom, dateTo, cancellationToken);
+    }
+
     private TransactionAnalysisResult AnalyzeTransactions(IEnumerable<FibTransaction> transactions, Boolean ignoreInternalTransactions, DateTime dateFrom, DateTime dateTo, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (transactions is null) throw new ArgumentNullException(nameof(transactions));
 
         var allTransactions = transactions.ToList();
-
-        cancellationToken.ThrowIfCancellationRequested();
 
         var filteredTransactions = allTransactions
             .Where(t => t.Date >= dateFrom)
             .Where(t => t.Date <= dateTo)
             .Where(t => !ignoreInternalTransactions || t.TransactionType != "MONEY_BOX_TRANSFER")
             .ToList();
-
-        cancellationToken.ThrowIfCancellationRequested();
 
         var result = new TransactionAnalysisResult
         {
