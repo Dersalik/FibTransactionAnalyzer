@@ -6,11 +6,15 @@ using TransactionAnalyzer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApplicationInsightsTelemetry();
+
+builder.Services.AddHealthChecks();
+
 builder.Services.AddRequestTimeouts();
 
 builder.Services.Configure<RequestTimeoutOptions>(options =>
 {
-    options.AddPolicy("MyTimeoutPolicy", TimeSpan.FromSeconds(2));
+    options.AddPolicy("MyTimeoutPolicy", TimeSpan.FromSeconds(3));
 });
 
 builder.Services.AddRateLimiter(options =>
@@ -48,11 +52,8 @@ builder.Services.AddScoped<ITransactionAnalysisService, TransactionAnalysisServi
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+app.UseExceptionHandler("/Home/Error");
+app.UseHsts();
 
 app.UseHttpsRedirection();
 
@@ -66,14 +67,11 @@ app.UseRequestTimeouts();
 
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-//app.MapControllerRoute(
-//    name: "analysis",
-//    pattern: "Analysis/{action=Index}/{id?}",
-//    defaults: new { controller = "Analysis" });
 
 app.Run();
 
