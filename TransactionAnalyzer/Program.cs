@@ -27,25 +27,14 @@ builder.Services.Configure<RequestTimeoutOptions>(options =>
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy("UploadPolicy", httpContext =>
-    {
-        string clientIp = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
-                         ?? httpContext.Connection.RemoteIpAddress?.ToString()
-                         ?? "unknown";
-
-        if (clientIp.Contains(','))
-        {
-            clientIp = clientIp.Split(',')[0].Trim();
-        }
-
-        return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: clientIp,
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
                 PermitLimit = 3,
                 Window = TimeSpan.FromMinutes(2)
-            });
-    });
+            }));
 
     options.OnRejected = async (context, token) =>
     {
