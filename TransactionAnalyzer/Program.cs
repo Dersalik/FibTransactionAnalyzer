@@ -52,8 +52,11 @@ builder.Services.AddScoped<ITransactionAnalysisService, TransactionAnalysisServi
 
 var app = builder.Build();
 
-app.UseExceptionHandler("/Home/Error");
-app.UseHsts();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
 
