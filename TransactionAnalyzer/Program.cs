@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.Timeouts;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Threading.RateLimiting;
 using Transaction;
 using TransactionAnalyzer.Models;
@@ -7,6 +8,12 @@ using TransactionAnalyzer.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationInsightsTelemetry();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
 builder.Services.AddHealthChecks();
 
@@ -20,14 +27,25 @@ builder.Services.Configure<RequestTimeoutOptions>(options =>
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy("UploadPolicy", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+    {
+        string clientIp = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                         ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                         ?? "unknown";
+
+        if (clientIp.Contains(','))
+        {
+            clientIp = clientIp.Split(',')[0].Trim();
+        }
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 3, 
+                PermitLimit = 3,
                 Window = TimeSpan.FromMinutes(2)
-            }));
+            });
+    });
 
     options.OnRejected = async (context, token) =>
     {
@@ -55,6 +73,7 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseForwardedHeaders();
     app.UseHsts();
 }
 
