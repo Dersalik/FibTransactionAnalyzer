@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.Timeouts;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Threading.RateLimiting;
 using Transaction;
 using TransactionAnalyzer.Models;
@@ -7,6 +8,12 @@ using TransactionAnalyzer.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationInsightsTelemetry();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
 builder.Services.AddHealthChecks();
 
@@ -25,7 +32,7 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 3, 
+                PermitLimit = 3,
                 Window = TimeSpan.FromMinutes(2)
             }));
 
@@ -55,6 +62,7 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseForwardedHeaders();
     app.UseHsts();
 }
 
