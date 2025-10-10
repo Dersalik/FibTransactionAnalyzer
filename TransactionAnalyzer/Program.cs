@@ -56,11 +56,11 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRateLimiter();
+
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseRateLimiter();
 
 app.UseRequestTimeouts();
 
