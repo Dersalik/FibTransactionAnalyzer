@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Transaction;
 using TransactionAnalyzer.Models;
 
@@ -31,6 +32,7 @@ public class AnalysisController : Controller
     [RequestSizeLimit(2 * 1024 * 1024)]
     [ValidateAntiForgeryToken]
     [RequestTimeout("MyTimeoutPolicy")]
+    [EnableRateLimiting("UploadPolicy")]
     public async Task<IActionResult> UploadAndAnalyze(IFormFile file, bool ignoreInternalTransactions, DateTime? dateFrom, DateTime? dateTo, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)

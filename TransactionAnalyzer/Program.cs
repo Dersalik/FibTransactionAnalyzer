@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.Timeouts;
+using System.Threading.RateLimiting;
 using Transaction;
 using TransactionAnalyzer.Models;
 using TransactionAnalyzer.Services;
@@ -10,6 +11,34 @@ builder.Services.AddRequestTimeouts();
 builder.Services.Configure<RequestTimeoutOptions>(options =>
 {
     options.AddPolicy("MyTimeoutPolicy", TimeSpan.FromSeconds(2));
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("UploadPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 3, 
+                Window = TimeSpan.FromMinutes(2)
+            }));
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.ContentType = "text/plain";
+
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString();
+        }
+
+        await context.HttpContext.Response.WriteAsync(
+            "Upload limit exceeded. Please wait before uploading another file.",
+            cancellationToken: token);
+    };
 });
 
 // Add services to the container.
@@ -26,6 +55,9 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
+
 app.UseStaticFiles();
 
 app.UseRouting();
