@@ -42,8 +42,8 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 3, 
-                Window = TimeSpan.FromMinutes(2)
+                PermitLimit = 5, 
+                Window = TimeSpan.FromHours(1)
             }));
 
     options.OnRejected = async (context, token) =>
