@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 using System.Threading.RateLimiting;
 using Transaction;
 using TransactionAnalyzer.Models;
@@ -8,17 +9,6 @@ using TransactionAnalyzer.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationInsightsTelemetry();
-
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders =
-        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
-
-    options.ForwardLimit = null;
-});
 
 builder.Services.AddHealthChecks();
 
@@ -29,15 +19,30 @@ builder.Services.Configure<RequestTimeoutOptions>(options =>
     options.AddPolicy("MyTimeoutPolicy", TimeSpan.FromSeconds(3));
 });
 
+var knownProxies = builder.Configuration.GetSection("AzureKnownProxies").Get<string[]>();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = null;
+    options.KnownProxies.Clear();
+    if (knownProxies != null)
+    {
+        foreach (var ip in knownProxies)
+        {
+            options.KnownProxies.Add(IPAddress.Parse(ip));
+        }
+    }
+});
+
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddPolicy("UploadPolicy", httpContext =>
+    options.AddPolicy("UploadPolicy", httpContext => 
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 3,
+                PermitLimit = 3, 
                 Window = TimeSpan.FromMinutes(2)
             }));
 
@@ -64,10 +69,11 @@ builder.Services.AddScoped<ITransactionAnalysisService, TransactionAnalysisServi
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseForwardedHeaders();
     app.UseHsts();
 }
 
