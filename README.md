@@ -2,6 +2,8 @@
 
 A powerful, privacy-focused financial transaction analysis tool that transforms your CSV transaction data into comprehensive insights and visualizations.
 
+You can try it out here:
+https://transactionanalyzer-prod-salik.azurewebsites.net
 ## What This Tool Does
 
 Transaction Analyzer takes your exported transaction files and creates detailed financial reports with interactive charts, trends analysis, and spending patterns. Think of it as your personal financial dashboard that helps you understand where your money comes from and where it goes.
