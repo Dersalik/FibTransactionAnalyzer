@@ -15,7 +15,26 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h1 class="display-4 fw-bold text-primary">Analysis Results</h1>
-                    <p class="text-muted mb-0">Generated on @Model.AnalysisDate.ToString("MMMM dd, yyyy 'at' HH:mm")</p>
+                    <p class="text-muted mb-0">Generated on @Model.AnalysisDate.ToString("MMMM dd, yyyy 'at' HH:mm") UTC</p>
+                    @if (Model.DateFrom.HasValue || Model.DateTo.HasValue)
+                    {
+                        <p class="text-muted small mb-0 mt-1">
+                            <i class="fas fa-calendar me-1"></i>
+                            <strong>Date Range:</strong> 
+                            @if (Model.DateFrom.HasValue && Model.DateTo.HasValue)
+                            {
+                                <span>@Model.DateFrom.Value.ToString("MMM dd, yyyy") - @Model.DateTo.Value.ToString("MMM dd, yyyy")</span>
+                            }
+                            else if (Model.DateFrom.HasValue)
+                            {
+                                <span>From @Model.DateFrom.Value.ToString("MMM dd, yyyy")</span>
+                            }
+                            else if (Model.DateTo.HasValue)
+                            {
+                                <span>Until @Model.DateTo.Value.ToString("MMM dd, yyyy")</span>
+                            }
+                        </p>
+                    }
                 </div>
                 <a asp-controller="Analysis" asp-action="Index" class="btn btn-outline-primary">
                     <i class="fas fa-upload me-2"></i>Analyze New File

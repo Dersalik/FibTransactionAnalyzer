@@ -25,7 +25,9 @@ public class TransactionAnalysisService : ITransactionAnalysisService
         var result = new TransactionAnalysisResult
         {
             TotalTransactionCount = allTransactions.Count,
-            FilteredTransactionCount = filteredTransactions.Count
+            FilteredTransactionCount = filteredTransactions.Count,
+            DateFrom = dateFrom == DateTime.MinValue ? null : dateFrom,
+            DateTo = dateTo == DateTime.MaxValue ? null : dateTo
         };
 
         var currencyGroups = filteredTransactions.GroupBy(t => t.Amount.Currency);

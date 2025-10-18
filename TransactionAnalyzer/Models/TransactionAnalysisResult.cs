@@ -8,6 +8,8 @@ public class TransactionAnalysisResult
     public int TotalTransactionCount { get; set; }
     public int FilteredTransactionCount { get; set; }
     public DateTime AnalysisDate { get; set; } = DateTime.UtcNow;
+    public DateTime? DateFrom { get; set; }
+    public DateTime? DateTo { get; set; }
 }
 
 public class CurrencyAnalysis
