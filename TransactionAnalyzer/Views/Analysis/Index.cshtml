@@ -178,6 +178,8 @@
         }
 
     .btn-primary {
+        background: #1e40af;
+        border-color: #1e40af;
         border-radius: 15px;
         padding: 15px 30px;
         font-weight: 600;
@@ -185,8 +187,10 @@
     }
 
         .btn-primary:hover {
+            background: #1e3a8a;
+            border-color: #1e3a8a;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+            box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
         }
 
     .form-control {
@@ -196,12 +200,12 @@
     }
 
         .form-control:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+            border-color: #1e40af;
+            box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.1);
         }
 
         .form-control:invalid {
-            border-color: #dc3545;
+            border-color: #dc2626;
         }
 
     .form-check-input {
@@ -211,28 +215,34 @@
     }
 
         .form-check-input:checked {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #1e40af;
+            border-color: #1e40af;
         }
 
         .form-check-input:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+            border-color: #1e40af;
+            box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.1);
         }
 
     .text-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
 
     body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
         min-height: 100vh;
     }
 
     .invalid-feedback {
         display: block;
+    }
+
+    .alert-danger {
+        background-color: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
     }
 </style>

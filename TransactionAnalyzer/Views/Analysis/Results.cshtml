@@ -14,7 +14,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="display-4 fw-bold mb-0">Analysis Results</h1>
+                    <h1 class="display-4 fw-bold text-primary">Analysis Results</h1>
                     <p class="text-muted mb-0">Generated on @Model.AnalysisDate.ToString("MMMM dd, yyyy 'at' HH:mm")</p>
                 </div>
                 <a asp-controller="Analysis" asp-action="Index" class="btn btn-outline-primary">
@@ -1137,8 +1137,8 @@
         box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     }
 
-    .display-4 {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .text-primary {
+        background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
