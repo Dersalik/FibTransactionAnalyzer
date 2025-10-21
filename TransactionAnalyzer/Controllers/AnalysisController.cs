@@ -32,7 +32,7 @@ public class AnalysisController : Controller
     [RequestSizeLimit(2 * 1024 * 1024)]
     [ValidateAntiForgeryToken]
     [RequestTimeout("MyTimeoutPolicy")]
-    [EnableRateLimiting("UploadPolicy")]
+    //[EnableRateLimiting("UploadPolicy")]
     public async Task<IActionResult> UploadAndAnalyze(IFormFile file, bool ignoreInternalTransactions, DateTime? dateFrom, DateTime? dateTo, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
