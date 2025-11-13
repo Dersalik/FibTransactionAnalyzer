@@ -1,248 +1,692 @@
-﻿@{
-    ViewData["Title"] = "Transaction Analysis";
+@{
+    ViewData["Title"] = "Financial Insights";
+    Layout = null;
 }
 
-<div class="container-fluid py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="text-center mb-5">
-                <h1 class="display-4 fw-bold text-primary">Transaction Analysis</h1>
-                <p class="lead text-muted">Upload your CSV file to analyze your financial transactions</p>
-            </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <form asp-controller="Analysis" asp-action="UploadAndAnalyze" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-                        @Html.AntiForgeryToken()
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
 
-                        <div class="mb-4">
-                            <label for="file" class="form-label fw-semibold">Select CSV File</label>
-                            <input type="file"
-                                   class="form-control form-control-lg"
-                                   id="file"
-                                   name="file"
-                                   accept=".csv,.txt"
-                                   required>
-                            <div class="form-text">Upload your transaction CSV file (max 10MB)</div>
-                            <div class="invalid-feedback">Please select a valid CSV file.</div>
-                        </div>
+        /* Animated Background */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
 
-                        <div class="mb-4">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       id="ignoreInternalTransactions"
-                                       name="ignoreInternalTransactions"
-                                       checked
-                                       value="true">
-                                <label class="form-check-label fw-semibold" for="ignoreInternalTransactions">
-                                    Ignore Internal Transactions
-                                </label>
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    When enabled, internal transfers and account-to-account transactions will be excluded from the analysis
-                                </div>
-                            </div>
-                        </div>
+        .background-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            animation: gradient-shift 15s ease infinite;
+        }
 
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Date Range Filter (Optional)</label>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="dateFrom" class="form-label">From Date</label>
-                                    <input type="date"
-                                           class="form-control"
-                                           id="dateFrom"
-                                           name="dateFrom">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="dateTo" class="form-label">To Date</label>
-                                    <input type="date"
-                                           class="form-control"
-                                           id="dateTo"
-                                           name="dateTo">
-                                </div>
-                            </div>
-                            <div class="form-text">
-                                <i class="fas fa-calendar me-1"></i>
-                                Filter transactions within the specified date range. Leave empty to include all transactions.
-                            </div>
-                        </div>
+        @keyframes gradient-shift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-50%, -50%); }
+        }
 
-                        @if (!ViewData.ModelState.IsValid)
-                        {
-                            <div class="alert alert-danger" role="alert">
-                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                                {
-                                    <div>@error.ErrorMessage</div>
-                                }
-                            </div>
-                        }
+        /* Floating shapes */
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite ease-in-out;
+        }
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
-                                <i class="fas fa-chart-line me-2"></i>
-                                Analyze Transactions
-                            </button>
-                        </div>
-                    </form>
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 5s;
+        }
+
+        .shape-3 {
+            width: 150px;
+            height: 150px;
+            bottom: 20%;
+            left: 50%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fade-in-down 0.8s ease;
+        }
+
+        @keyframes fade-in-down {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .hero .subtitle {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 400;
+        }
+
+        /* Upload Card */
+        .upload-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fade-in-up 0.8s ease 0.2s both;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 3px dashed #667eea;
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f3ff 100%);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .upload-zone:hover::before {
+            opacity: 1;
+        }
+
+        .upload-zone.dragover {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, #e8ebff 0%, #dfe5ff 100%);
+            transform: scale(1.02);
+        }
+
+        .upload-zone.dragover::before {
+            opacity: 1;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-zone h2 {
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .upload-zone p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+
+        .btn-upload {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Options Section */
+        .options-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .options-section h3 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .option-group {
+            margin-bottom: 20px;
+        }
+
+        .option-group label {
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            color: #555;
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .option-group label:hover {
+            background: #f5f7ff;
+        }
+
+        .option-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .date-filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .date-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .date-input-group label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .date-input-group input[type="date"] {
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s ease;
+            background: white;
+        }
+
+        .date-input-group input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Submit Button */
+        .btn-analyze {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-analyze:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* File Info */
+        .file-info {
+            margin-top: 20px;
+            padding: 16px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            animation: slide-in 0.3s ease;
+        }
+
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .file-info.active {
+            display: flex;
+        }
+
+        .file-info-icon {
+            font-size: 2rem;
+        }
+
+        .file-info-details {
+            flex: 1;
+        }
+
+        .file-info-name {
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 4px;
+        }
+
+        .file-info-size {
+            font-size: 0.85rem;
+            color: #558b2f;
+        }
+
+        .file-remove {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #666;
+            transition: color 0.2s ease;
+        }
+
+        .file-remove:hover {
+            color: #d32f2f;
+        }
+
+        /* Privacy Badge */
+        .privacy-badge {
+            margin-top: 40px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            animation: fade-in-up 0.8s ease 0.4s both;
+        }
+
+        .privacy-badge-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .privacy-badge p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .upload-card {
+                padding: 30px 20px;
+            }
+
+            .upload-zone {
+                padding: 40px 20px;
+            }
+
+            .date-filters {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Error Message */
+        .error-message {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            color: #c62828;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Your Financial Story</h1>
+            <p>Transform transactions into insights</p>
+            <p class="subtitle">Upload your FIB bank statement and discover patterns in your spending</p>
+        </div>
+
+        <div class="upload-card">
+            <form id="uploadForm" asp-action="UploadAndAnalyze" method="post" enctype="multipart/form-data">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📊</div>
+                    <h2>Drop your CSV file here</h2>
+                    <p>or click to browse</p>
+                    <input type="file" name="file" id="fileInput" accept=".csv,.txt" required />
+                    <button type="button" class="btn-upload" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
                 </div>
-            </div>
 
-            <div class="mt-4 text-center">
-                <small class="text-muted">
-                    Supported formats: CSV files with FIB transaction export format
-                </small>
-            </div>
+                <div class="file-info" id="fileInfo">
+                    <div class="file-info-icon">📄</div>
+                    <div class="file-info-details">
+                        <div class="file-info-name" id="fileName"></div>
+                        <div class="file-info-size" id="fileSize"></div>
+                    </div>
+                    <div class="file-remove" onclick="removeFile()">&times;</div>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+
+                <div class="options-section">
+                    <h3>Analysis Options</h3>
+
+                    <div class="option-group">
+                        <label>
+                            <input type="checkbox" name="ignoreInternalTransactions" id="ignoreInternal" checked />
+                            <span>Exclude internal transfers (Money Box movements)</span>
+                        </label>
+                    </div>
+
+                    <div class="date-filters">
+                        <div class="date-input-group">
+                            <label for="dateFrom">From Date</label>
+                            <input type="date" name="dateFrom" id="dateFrom" />
+                        </div>
+                        <div class="date-input-group">
+                            <label for="dateTo">To Date</label>
+                            <input type="date" name="dateTo" id="dateTo" />
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-analyze" id="analyzeBtn" disabled>
+                    Analyze My Finances
+                </button>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing your transactions...</p>
+                </div>
+
+                @Html.AntiForgeryToken()
+            </form>
+        </div>
+
+        <div class="privacy-badge">
+            <div class="privacy-badge-icon">🔒</div>
+            <p>
+                <strong>100% Private & Secure</strong><br>
+                Your data is processed locally and never stored on our servers.<br>
+                All analysis happens in real-time and data is immediately discarded.
+            </p>
         </div>
     </div>
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('.needs-validation');
-        const fileInput = document.getElementById('file');
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
         const analyzeBtn = document.getElementById('analyzeBtn');
-        const dateFromInput = document.getElementById('dateFrom');
-        const dateToInput = document.getElementById('dateTo');
+        const uploadForm = document.getElementById('uploadForm');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
 
-        form.addEventListener('submit', function(event) {
-            let isValid = form.checkValidity();
-
-            // Custom validation for date range
-            if (dateFromInput.value && dateToInput.value) {
-                const fromDate = new Date(dateFromInput.value);
-                const toDate = new Date(dateToInput.value);
-
-                if (fromDate > toDate) {
-                    dateFromInput.setCustomValidity('From date must be before To date');
-                    dateToInput.setCustomValidity('To date must be after From date');
-                    isValid = false;
-                } else {
-                    dateFromInput.setCustomValidity('');
-                    dateToInput.setCustomValidity('');
-                }
-            } else {
-                dateFromInput.setCustomValidity('');
-                dateToInput.setCustomValidity('');
-            }
-
-            if (!isValid) {
-                event.preventDefault();
-                event.stopPropagation();
-            } else {
-                analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
-                analyzeBtn.disabled = true;
-            }
-            form.classList.add('was-validated');
+        // Drag and drop handlers
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
         });
 
-        // Date validation on change
-        function validateDateRange() {
-            if (dateFromInput.value && dateToInput.value) {
-                const fromDate = new Date(dateFromInput.value);
-                const toDate = new Date(dateToInput.value);
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
 
-                if (fromDate > toDate) {
-                    dateFromInput.setCustomValidity('From date must be before To date');
-                    dateToInput.setCustomValidity('To date must be after From date');
-                } else {
-                    dateFromInput.setCustomValidity('');
-                    dateToInput.setCustomValidity('');
-                }
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
             }
-        }
+        });
 
-        dateFromInput.addEventListener('change', validateDateRange);
-        dateToInput.addEventListener('change', validateDateRange);
+        // File input change
+        fileInput.addEventListener('change', handleFileSelect);
 
-        fileInput.addEventListener('change', function() {
-            const file = this.files[0];
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+
             if (file) {
-                const fileSize = (file.size / 1024 / 1024).toFixed(2);
-                const fileText = document.querySelector('.form-text');
-                fileText.textContent = `Selected: ${file.name} (${fileSize} MB)`;
+                // Validate file
+                const validExtensions = ['.csv', '.txt'];
+                const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                const maxSize = 2 * 1024 * 1024; // 2MB
+
+                if (!validExtensions.includes(fileExtension)) {
+                    showError('Please select a CSV or TXT file');
+                    removeFile();
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    showError('File size must be less than 2MB');
+                    removeFile();
+                    return;
+                }
+
+                // Show file info
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                fileInfo.classList.add('active');
+                analyzeBtn.disabled = false;
+                hideError();
             }
+        }
+
+        function removeFile() {
+            fileInput.value = '';
+            fileInfo.classList.remove('active');
+            analyzeBtn.disabled = true;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' bytes';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('active');
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('active');
+        }
+
+        // Form submission
+        uploadForm.addEventListener('submit', (e) => {
+            if (!fileInput.files[0]) {
+                e.preventDefault();
+                showError('Please select a file to analyze');
+                return;
+            }
+
+            loading.classList.add('active');
+            analyzeBtn.disabled = true;
         });
-    });
-</script>
 
-<style>
-    .card {
-        border-radius: 20px;
-        transition: transform 0.2s ease-in-out;
-    }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-    .btn-primary {
-        background: #1e40af;
-        border-color: #1e40af;
-        border-radius: 15px;
-        padding: 15px 30px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-        .btn-primary:hover {
-            background: #1e3a8a;
-            border-color: #1e3a8a;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
-        }
-
-    .form-control {
-        border-radius: 12px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-
-        .form-control:focus {
-            border-color: #1e40af;
-            box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.1);
-        }
-
-        .form-control:invalid {
-            border-color: #dc2626;
-        }
-
-    .form-check-input {
-        border-radius: 6px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-
-        .form-check-input:checked {
-            background-color: #1e40af;
-            border-color: #1e40af;
-        }
-
-        .form-check-input:focus {
-            border-color: #1e40af;
-            box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.1);
-        }
-
-    .text-primary {
-        background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    body {
-        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-        min-height: 100vh;
-    }
-
-    .invalid-feedback {
-        display: block;
-    }
-
-    .alert-danger {
-        background-color: #fef2f2;
-        border-color: #fecaca;
-        color: #dc2626;
-    }
-</style>
+        // Set today's date as default for dateTo
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('dateTo').value = today;
+    </script>
+</body>
+</html>

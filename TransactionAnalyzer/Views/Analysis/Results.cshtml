@@ -1,26 +1,614 @@
-﻿@using System.Globalization
+@using System.Globalization
 @model TransactionAnalyzer.Models.TransactionAnalysisResult
 @using Transaction
 @{
-    ViewData["Title"] = "Transaction Analysis Results";
+    ViewData["Title"] = "Your Financial Insights";
+    Layout = null;
 }
 
-<!-- This view serves as the main dashboard displaying comprehensive transaction analysis.
-     It's organized into sections for each currency, with charts and statistics for each analysis type. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<div class="container-fluid py-4">
-    <!-- Header Section with Overall Statistics -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="display-4 fw-bold text-primary">Analysis Results</h1>
-                    <p class="text-muted mb-0">Generated on @Model.AnalysisDate.ToString("MMMM dd, yyyy 'at' HH:mm") UTC</p>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --light: #f8f9fa;
+            --dark: #1f2937;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --card-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slide-down 0.5s ease;
+        }
+
+        @keyframes slide-down {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        /* Currency Tabs */
+        .currency-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            animation: fade-in 0.5s ease 0.2s both;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .currency-tab {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: var(--card-shadow);
+        }
+
+        .currency-tab:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .currency-tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .currency-tab-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .currency-tab.active .currency-tab-label {
+            opacity: 0.9;
+        }
+
+        .currency-tab-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        /* Currency Content */
+        .currency-content {
+            display: none;
+            animation: fade-in-scale 0.4s ease;
+        }
+
+        .currency-content.active {
+            display: block;
+        }
+
+        @keyframes fade-in-scale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Hero Stats */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .stat-card.income .stat-card-icon {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-card.expense .stat-card-icon {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .stat-card.net .stat-card-icon {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .stat-card.fees .stat-card-icon {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .stat-card-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-card.income .stat-card-value {
+            color: var(--success);
+        }
+
+        .stat-card.expense .stat-card-value {
+            color: var(--danger);
+        }
+
+        .stat-card.net .stat-card-value {
+            color: var(--info);
+        }
+
+        .stat-card.fees .stat-card-value {
+            color: var(--warning);
+        }
+
+        /* Insight Cards Grid */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .insight-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .insight-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .insight-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .insight-card-subtitle {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .insight-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Full Width Cards */
+        .full-width-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table thead th {
+            background: #f8f9fa;
+            padding: 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #666;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .data-table thead th:first-child {
+            border-radius: 8px 0 0 0;
+        }
+
+        .data-table thead th:last-child {
+            border-radius: 0 8px 0 0;
+        }
+
+        .data-table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tbody td {
+            padding: 14px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Expandable Section */
+        .expandable-section {
+            margin-top: 20px;
+        }
+
+        .expand-toggle {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .expand-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .expandable-content.expanded {
+            max-height: 5000px;
+        }
+
+        /* Income Stats Card */
+        .income-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .income-stat-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .income-stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .income-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .income-stat-detail {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        /* Counterparty Card */
+        .counterparty-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            background: #f8f9fa;
+            transition: all 0.2s ease;
+        }
+
+        .counterparty-item:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+
+        .counterparty-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .counterparty-count {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .counterparty-amounts {
+            text-align: right;
+        }
+
+        .counterparty-sent {
+            color: var(--danger);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .counterparty-received {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .counterparty-net {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stat-card-value {
+                font-size: 1.6rem;
+            }
+
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation Delays */
+        .stat-card:nth-child(1) { animation: fade-in 0.5s ease 0.1s both; }
+        .stat-card:nth-child(2) { animation: fade-in 0.5s ease 0.2s both; }
+        .stat-card:nth-child(3) { animation: fade-in 0.5s ease 0.3s both; }
+        .stat-card:nth-child(4) { animation: fade-in 0.5s ease 0.4s both; }
+
+        .insight-card:nth-child(1) { animation: fade-in 0.5s ease 0.3s both; }
+        .insight-card:nth-child(2) { animation: fade-in 0.5s ease 0.4s both; }
+        .insight-card:nth-child(3) { animation: fade-in 0.5s ease 0.5s both; }
+        .insight-card:nth-child(4) { animation: fade-in 0.5s ease 0.6s both; }
+
+        .full-width-card { animation: fade-in 0.5s ease 0.7s both; }
+
+        /* Loading State */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>💰 Your Financial Insights</h1>
+                <div class="header-subtitle">
+                    Analysis generated on @Model.AnalysisDate.ToString("MMMM dd, yyyy 'at' HH:mm") UTC
                     @if (Model.DateFrom.HasValue || Model.DateTo.HasValue)
                     {
-                        <p class="text-muted small mb-0 mt-1">
-                            <i class="fas fa-calendar me-1"></i>
-                            <strong>Date Range:</strong> 
+                        <span> • Filtered:
                             @if (Model.DateFrom.HasValue && Model.DateTo.HasValue)
                             {
                                 <span>@Model.DateFrom.Value.ToString("MMM dd, yyyy") - @Model.DateTo.Value.ToString("MMM dd, yyyy")</span>
@@ -33,1288 +621,475 @@
                             {
                                 <span>Until @Model.DateTo.Value.ToString("MMM dd, yyyy")</span>
                             }
-                        </p>
+                        </span>
                     }
                 </div>
-                <a asp-controller="Analysis" asp-action="Index" class="btn btn-outline-primary">
-                    <i class="fas fa-upload me-2"></i>Analyze New File
-                </a>
             </div>
-
-            <!-- Overall Statistics Cards -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <div class="card stat-card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="fas fa-file-alt text-primary fs-1 mb-2"></i>
-                            <h4 class="fw-bold">@Model.TotalTransactionCount</h4>
-                            <p class="text-muted mb-0">Total Transactions</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="fas fa-filter text-success fs-1 mb-2"></i>
-                            <h4 class="fw-bold">@Model.FilteredTransactionCount</h4>
-                            <p class="text-muted mb-0">Analyzed Transactions</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="fas fa-coins text-warning fs-1 mb-2"></i>
-                            <h4 class="fw-bold">@Model.CurrencyAnalyses.Count</h4>
-                            <p class="text-muted mb-0">Currencies</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="fas fa-ban text-danger fs-1 mb-2"></i>
-                            <h4 class="fw-bold">@(Model.TotalTransactionCount - Model.FilteredTransactionCount)</h4>
-                            <p class="text-muted mb-0">Filtered Out</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="header-actions">
+                <a href="@Url.Action("Index", "Analysis")" class="btn btn-primary">
+                    <span>↻</span> Analyze New File
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Currency-specific Analysis Sections -->
-    <!-- This loop creates a complete analysis dashboard for each currency found in the data -->
-    @foreach (var currencyAnalysis in Model.CurrencyAnalyses)
-    {
-        var currency = currencyAnalysis.Key;
-        var analysis = currencyAnalysis.Value;
-        var currencySymbol = currency.ToString();
-        var currencyCulture = new CultureInfo(currency.GetCultureCode());
-
-        <div class="currency-section mb-5" id="currency_@currency">
-            <div class="row mb-4">
-                <div class="col-12">
-                    <h2 class="fw-bold text-primary mb-3">
-                        <i class="fas fa-money-bill-wave me-2"></i>
-                        @currency Analysis
-                    </h2>
-                </div>
+    <div class="container">
+        <!-- Overall Stats -->
+        <div class="hero-stats" style="margin-bottom: 40px;">
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">📝</div>
+                <div class="stat-card-label">Total Transactions</div>
+                <div class="stat-card-value" style="color: #6366f1;">@Model.TotalTransactionCount</div>
             </div>
-
-            <!-- Currency Navigation Bar -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body py-2">
-                            <nav class="currency-nav">
-                                <ul class="nav nav-pills justify-content-center flex-wrap">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" href="#dashboard_@currency" data-section="dashboard" data-currency="@currency">
-                                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#transaction-type-analysis_@currency" data-section="transaction-type-analysis" data-currency="@currency">
-                                            <i class="fas fa-chart-pie me-1"></i>Transaction Types
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#counterparties-sent-received_@currency" data-section="counterparties-sent-received" data-currency="@currency">
-                                            <i class="fas fa-exchange-alt me-1"></i>Sent vs Received
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#top-counterparties-summary_@currency" data-section="top-counterparties-summary" data-currency="@currency">
-                                            <i class="fas fa-users me-1"></i>Top Counterparties
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#largest-transactions-by-type_@currency" data-section="largest-transactions-by-type" data-currency="@currency">
-                                            <i class="fas fa-star me-1"></i>Largest Transactions
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#counterparties-by-transaction-type_@currency" data-section="counterparties-by-transaction-type" data-currency="@currency">
-                                            <i class="fas fa-network-wired me-1"></i>By Transaction Type
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#income-statistics_@currency" data-section="income-statistics" data-currency="@currency">
-                                            <i class="fas fa-chart-line me-1"></i>Income Statistics
-                                        </a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">✓</div>
+                <div class="stat-card-label">Analyzed</div>
+                <div class="stat-card-value" style="color: #10b981;">@Model.FilteredTransactionCount</div>
             </div>
-
-            <!-- Dashboard Section -->
-            <div id="dashboard_@currency" class="currency-content-section">
-                <!-- Financial Overview Cards for this Currency -->
-                <div class="row g-3 mb-4">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card metric-card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-1">Total Inflow</h6>
-                                        <h4 class="fw-bold text-success">@analysis.TotalInflow.ToString("C", currencyCulture)</h4>
-                                    </div>
-                                    <i class="fas fa-arrow-up text-success fs-2"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card metric-card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-1">Total Outflow</h6>
-                                        <h4 class="fw-bold text-danger">@analysis.TotalOutflow.ToString("C", currencyCulture)</h4>
-                                    </div>
-                                    <i class="fas fa-arrow-down text-danger fs-2"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card metric-card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-1">Net Amount</h6>
-                                        <h4 class="fw-bold @(analysis.NetAmount >= 0 ? "text-success" : "text-danger")">
-                                            @analysis.NetAmount.ToString("C", currencyCulture)
-                                        </h4>
-                                    </div>
-                                    <i class="fas @(analysis.NetAmount >= 0 ? "fa-plus" : "fa-minus") @(analysis.NetAmount >= 0 ? "text-success" : "text-danger") fs-2"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card metric-card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-1">Total Fees</h6>
-                                        <h4 class="fw-bold text-warning">@analysis.TotalFees.ToString("C", currencyCulture)</h4>
-                                    </div>
-                                    <i class="fas fa-receipt text-warning fs-2"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts Row - This contains the main visualizations for financial analysis -->
-                <div class="row g-4 mb-4">
-                    <!-- Account Balance Tracking Chart -->
-                    <div class="col-lg-6">
-                        <div class="card chart-card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white border-0 pb-0">
-                                <h5 class="fw-bold mb-0">Account Balance Tracking</h5>
-                                <p class="text-muted small mb-0">Balance changes over time</p>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="balanceChart_@currency" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Monthly Cash Flow Analysis Chart -->
-                    <div class="col-lg-6">
-                        <div class="card chart-card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white border-0 pb-0">
-                                <h5 class="fw-bold mb-0">Monthly Cash Flow</h5>
-                                <p class="text-muted small mb-0">Income vs Expenses by month</p>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="cashFlowChart_@currency" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-4 mb-4">
-                    <!-- Transaction Types Analysis -->
-                    <div class="col-lg-6">
-                        <div class="card chart-card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white border-0 pb-0">
-                                <h5 class="fw-bold mb-0">Transaction Types</h5>
-                                <p class="text-muted small mb-0">Distribution by transaction type</p>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="transactionTypesChart_@currency" class="transaction-types-canvas" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Yearly Analysis Chart -->
-                    <div class="col-lg-6">
-                        <div class="card chart-card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white border-0 pb-0">
-                                <h5 class="fw-bold mb-0">Yearly Analysis</h5>
-                                <p class="text-muted small mb-0">Income and expenses by year</p>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="yearlyChart_@currency" height="300"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">💱</div>
+                <div class="stat-card-label">Currencies</div>
+                <div class="stat-card-value" style="color: #f59e0b;">@Model.CurrencyAnalyses.Count</div>
             </div>
-
-            <!-- Transaction Type Analysis Section -->
-            <div id="transaction-type-analysis_@currency" class="currency-content-section" style="display: none;">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="card table-card border-0 shadow-sm">
-                            <div class="card-header bg-white border-0">
-                                <h5 class="fw-bold mb-0">Transaction Type Analysis</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Type</th>
-                                                <th>Count</th>
-                                                <th>Average</th>
-                                                <th>Largest</th>
-                                                <th>Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var typeAnalysis in analysis.TransactionTypeAnalyses.OrderByDescending(t => t.TotalAmount))
-                                            {
-                                                <tr>
-                                                    <td>@typeAnalysis.TransactionType.Replace("_", " ")</td>
-                                                    <td><span class="badge bg-primary">@typeAnalysis.Count</span></td>
-                                                    <td>@typeAnalysis.AverageAmount.ToString("C", currencyCulture)</td>
-                                                    <td>@typeAnalysis.LargestAmount.ToString("C", currencyCulture)</td>
-                                                    <td>@typeAnalysis.TotalAmount.ToString("C", currencyCulture)</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">⊘</div>
+                <div class="stat-card-label">Filtered Out</div>
+                <div class="stat-card-value" style="color: #ef4444;">@(Model.TotalTransactionCount - Model.FilteredTransactionCount)</div>
             </div>
+        </div>
 
-            <!-- Counterparties - Sent vs Received Section -->
-            <div id="counterparties-sent-received_@currency" class="currency-content-section" style="display: none;">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="card table-card border-0 shadow-sm">
-                            <div class="card-header bg-white border-0">
-                                <h5 class="fw-bold mb-0">
-                                    <i class="fas fa-exchange-alt text-info me-2"></i>
-                                    Counterparties - Sent vs Received
-                                </h5>
-                                <p class="text-muted small mb-0">Money flow analysis with counterparties (click headers to sort)</p>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0" id="counterpartiesTable_@currency">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th class="sortable" data-sort="counterparty" style="cursor: pointer;">
-                                                    Counterparty <i class="fas fa-sort ms-1"></i>
-                                                </th>
-                                                <th class="text-danger sortable" data-sort="sent" style="cursor: pointer;">
-                                                    Sent <i class="fas fa-sort ms-1"></i>
-                                                </th>
-                                                <th class="text-success sortable" data-sort="received" style="cursor: pointer;">
-                                                    Received <i class="fas fa-sort ms-1"></i>
-                                                </th>
-                                                <th class="sortable active-sort" data-sort="net" style="cursor: pointer;">
-                                                    Net Balance <i class="fas fa-sort-down ms-1"></i>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="counterpartiesTableBody_@currency">
-                                            @{
-                                                // Sort by net amount descending initially (highest net balance first)
-                                                var sortedCounterparties = analysis.TopCounterparties.OrderByDescending(c => c.NetAmount).ToList();
-                                                var counterpartiesToShow = sortedCounterparties.Take(20).ToList();
-                                                var hasMoreCounterparties = sortedCounterparties.Count() > 20;
-                                            }
-                                            @foreach (var counterparty in counterpartiesToShow)
-                                            {
-                                                <tr class="counterparty-row-visible">
-                                                    <td data-value="@counterparty.Counterparty.ToLower()">
-                                                        <strong>@counterparty.Counterparty</strong>
-                                                        <br>
-                                                        <small class="text-muted">@counterparty.TransactionCount transactions</small>
-                                                    </td>
-                                                    <td class="text-danger" data-value="@counterparty.AmountSent">
-                                                        <strong>@counterparty.AmountSent.ToString("C", currencyCulture)</strong>
-                                                    </td>
-                                                    <td class="text-success" data-value="@counterparty.AmountReceived">
-                                                        <strong>@counterparty.AmountReceived.ToString("C", currencyCulture)</strong>
-                                                    </td>
-                                                    <td data-value="@counterparty.NetAmount">
-                                                        <strong class="@(counterparty.NetAmount >= 0 ? "text-success" : "text-danger")">
-                                                            @counterparty.NetAmount.ToString("C", currencyCulture)
-                                                        </strong>
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            @(counterparty.NetAmount >= 0 ? "You received more" : "You sent more")
-                                                        </small>
-                                                    </td>
-                                                </tr>
-                                            }
-                                            @if (hasMoreCounterparties)
-                                            {
-                                                @foreach (var counterparty in sortedCounterparties.Skip(20))
-                                                {
-                                                    <tr class="counterparty-row-hidden" style="display: none;">
-                                                        <td data-value="@counterparty.Counterparty.ToLower()">
-                                                            <strong>@counterparty.Counterparty</strong>
-                                                            <br>
-                                                            <small class="text-muted">@counterparty.TransactionCount transactions</small>
-                                                        </td>
-                                                        <td class="text-danger" data-value="@counterparty.AmountSent">
-                                                            <strong>@counterparty.AmountSent.ToString("C", currencyCulture)</strong>
-                                                        </td>
-                                                        <td class="text-success" data-value="@counterparty.AmountReceived">
-                                                            <strong>@counterparty.AmountReceived.ToString("C", currencyCulture)</strong>
-                                                        </td>
-                                                        <td data-value="@counterparty.NetAmount">
-                                                            <strong class="@(counterparty.NetAmount >= 0 ? "text-success" : "text-danger")">
-                                                                @counterparty.NetAmount.ToString("C", currencyCulture)
-                                                            </strong>
-                                                            <br>
-                                                            <small class="text-muted">
-                                                                @(counterparty.NetAmount >= 0 ? "You received more" : "You sent more")
-                                                            </small>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            @if (hasMoreCounterparties)
-                            {
-                                <div class="card-footer bg-light border-0 text-center">
-                                    <button class="btn btn-outline-primary btn-sm" id="toggleCounterparties_@currency" onclick="toggleCounterpartiesView('@currency')">
-                                        <i class="fas fa-chevron-down me-1"></i>
-                                        Show All (@sortedCounterparties.Count() total)
-                                    </button>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Top Counterparties Summary Section -->
-            <div id="top-counterparties-summary_@currency" class="currency-content-section" style="display: none;">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="card table-card border-0 shadow-sm">
-                            <div class="card-header bg-white border-0">
-                                <h5 class="fw-bold mb-0">Top Counterparties Summary</h5>
-                                <p class="text-muted small mb-0">Overall transaction summary with all counterparties</p>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Counterparty</th>
-                                                <th>Total Transactions</th>
-                                                <th>Total Amount</th>
-                                                <th>Average per Transaction</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var counterparty in analysis.TopCounterparties.OrderByDescending(c => c.TotalAmount).Take(13))
-                                            {
-                                                <tr>
-                                                    <td>@counterparty.Counterparty</td>
-                                                    <td><span class="badge bg-info">@counterparty.TransactionCount</span></td>
-                                                    <td>@counterparty.TotalAmount.ToString("C", currencyCulture)</td>
-                                                    <td>@counterparty.AverageAmount.ToString("C", currencyCulture)</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Largest Transactions By Type Section -->
-            @if (analysis.LargestTransactionsByType.Any())
+        <!-- Currency Tabs -->
+        <div class="currency-tabs">
+            @{
+                var currencyIndex = 0;
+            }
+            @foreach (var currencyAnalysis in Model.CurrencyAnalyses)
             {
-                <div id="largest-transactions-by-type_@currency" class="currency-content-section" style="display: none;">
-                    <div class="row g-4 mb-4">
-                        <div class="col-12">
-                            <div class="card table-card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="fw-bold mb-0">
-                                        <i class="fas fa-star text-warning me-2"></i>
-                                        Largest Transactions By Type
-                                    </h5>
-                                    <p class="text-muted small mb-0">The biggest transaction in each category</p>
+                var currency = currencyAnalysis.Key;
+                var analysis = currencyAnalysis.Value;
+                var isActive = currencyIndex == 0 ? "active" : "";
+                currencyIndex++;
+
+                <div class="currency-tab @isActive" onclick="switchCurrency('@currency')">
+                    <div class="currency-tab-label">@currency</div>
+                    <div class="currency-tab-value">@analysis.TransactionCount txns</div>
+                </div>
+            }
+        </div>
+
+        <!-- Currency Content Sections -->
+        @{
+            currencyIndex = 0;
+        }
+        @foreach (var currencyAnalysis in Model.CurrencyAnalyses)
+        {
+            var currency = currencyAnalysis.Key;
+            var analysis = currencyAnalysis.Value;
+            var currencyCulture = new CultureInfo(currency.GetCultureCode());
+            var isActive = currencyIndex == 0 ? "active" : "";
+            currencyIndex++;
+
+            <div class="currency-content @isActive" id="currency_@currency">
+                <!-- Hero Stats for Currency -->
+                <div class="hero-stats">
+                    <div class="stat-card income">
+                        <div class="stat-card-icon">↗</div>
+                        <div class="stat-card-label">Total Income</div>
+                        <div class="stat-card-value">@analysis.TotalInflow.ToString("C0", currencyCulture)</div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-card-icon">↘</div>
+                        <div class="stat-card-label">Total Expenses</div>
+                        <div class="stat-card-value">@analysis.TotalOutflow.ToString("C0", currencyCulture)</div>
+                    </div>
+                    <div class="stat-card net">
+                        <div class="stat-card-icon">@(analysis.NetAmount >= 0 ? "+" : "-")</div>
+                        <div class="stat-card-label">Net Amount</div>
+                        <div class="stat-card-value" style="color: @(analysis.NetAmount >= 0 ? "var(--success)" : "var(--danger)")">
+                            @analysis.NetAmount.ToString("C0", currencyCulture)
+                        </div>
+                    </div>
+                    <div class="stat-card fees">
+                        <div class="stat-card-icon">💳</div>
+                        <div class="stat-card-label">Total Fees</div>
+                        <div class="stat-card-value">@analysis.TotalFees.ToString("C0", currencyCulture)</div>
+                    </div>
+                </div>
+
+                <!-- Main Insights Grid -->
+                <div class="insights-grid">
+                    <!-- Balance Tracking Chart -->
+                    <div class="insight-card">
+                        <div class="insight-card-header">
+                            <div>
+                                <div class="insight-card-title">Balance Journey</div>
+                                <div class="insight-card-subtitle">How your balance evolved over time</div>
+                            </div>
+                            <div class="insight-card-icon">📈</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="balanceChart_@currency"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Cash Flow -->
+                    <div class="insight-card">
+                        <div class="insight-card-header">
+                            <div>
+                                <div class="insight-card-title">Monthly Cash Flow</div>
+                                <div class="insight-card-subtitle">Income vs Expenses each month</div>
+                            </div>
+                            <div class="insight-card-icon">💵</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="cashFlowChart_@currency"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Types -->
+                    <div class="insight-card">
+                        <div class="insight-card-header">
+                            <div>
+                                <div class="insight-card-title">Transaction Types</div>
+                                <div class="insight-card-subtitle">Where your money goes</div>
+                            </div>
+                            <div class="insight-card-icon">🎯</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="transactionTypesChart_@currency"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Yearly Performance -->
+                    @if (analysis.YearlyAnalyses.Any())
+                    {
+                        <div class="insight-card">
+                            <div class="insight-card-header">
+                                <div>
+                                    <div class="insight-card-title">Yearly Performance</div>
+                                    <div class="insight-card-subtitle">Long-term financial trends</div>
                                 </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover mb-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Counterparty</th>
-                                                    <th>Date</th>
-                                                    <th>Status</th>
-                                                    <th>Note</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var largestType in analysis.LargestTransactionsByType)
-                                                {
-                                                    <tr>
-                                                        <td>
-                                                            <span class="badge bg-secondary">@largestType.TransactionType.Replace("_", " ")</span>
-                                                        </td>
-                                                        <td>
-                                                            <strong class="@(largestType.LargestAmount >= 0 ? "text-success" : "text-danger")">
-                                                                @largestType.LargestAmount.ToString("C", currencyCulture)
-                                                            </strong>
-                                                        </td>
-                                                        @if (largestType.LargestTransaction != null)
-                                                        {
-                                                            <td>@(string.IsNullOrEmpty(largestType.LargestTransaction.Counterparty) ? "-" : largestType.LargestTransaction.Counterparty)</td>
-                                                            <td>@largestType.LargestTransaction.Date.ToString("MMM dd, yyyy")</td>
-                                                            <td>
-                                                                <span class="badge @(largestType.LargestTransaction.Status == "COMPLETED" ? "bg-success" : "bg-warning")">
-                                                                    @largestType.LargestTransaction.Status
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <small class="text-muted">
-                                                                    @(string.IsNullOrEmpty(largestType.LargestTransaction.Note) ? "-" :
-                                                                                                                        (largestType.LargestTransaction.Note.Length > 30 ?
-                                                                                                                        largestType.LargestTransaction.Note.Substring(0, 30) + "..." :
-                                                                                                                        largestType.LargestTransaction.Note))
-                                                </small>
-                                            </td>
-                                                                                        }
-                                                        else
-                                                        {
-                                                            <td colspan="4" class="text-muted">Transaction details not available</td>
-                                                        }
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
+                                <div class="insight-card-icon">📊</div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="yearlyChart_@currency"></canvas>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Income Statistics -->
+                @if (analysis.MonthlyAnalyses.Any())
+                {
+                    <div class="full-width-card">
+                        <div class="insight-card-header">
+                            <div>
+                                <div class="insight-card-title">Income Statistics</div>
+                                <div class="insight-card-subtitle">Your earning patterns at a glance</div>
+                            </div>
+                            <div class="insight-card-icon">💰</div>
+                        </div>
+                        <div class="income-stats-grid">
+                            <div class="income-stat-item">
+                                <div class="income-stat-label">Average Monthly</div>
+                                <div class="income-stat-value">@analysis.AverageMonthlyIncome.ToString("C0", currencyCulture)</div>
+                            </div>
+                            <div class="income-stat-item">
+                                <div class="income-stat-label">Best Month</div>
+                                <div class="income-stat-value" style="color: var(--success);">@analysis.MaxMonthlyIncome.ToString("C0", currencyCulture)</div>
+                                @if (analysis.BestIncomeMonth != null)
+                                {
+                                    <div class="income-stat-detail">@analysis.BestIncomeMonth.MonthName</div>
+                                }
+                            </div>
+                            <div class="income-stat-item">
+                                <div class="income-stat-label">Worst Month</div>
+                                <div class="income-stat-value" style="color: var(--warning);">@analysis.MinMonthlyIncome.ToString("C0", currencyCulture)</div>
+                                @if (analysis.WorstIncomeMonth != null)
+                                {
+                                    <div class="income-stat-detail">@analysis.WorstIncomeMonth.MonthName</div>
+                                }
+                            </div>
+                            <div class="income-stat-item">
+                                <div class="income-stat-label">Total Months</div>
+                                <div class="income-stat-value">@analysis.MonthlyAnalyses.Count</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Top Counterparties -->
+                <div class="full-width-card">
+                    <div class="insight-card-header">
+                        <div>
+                            <div class="insight-card-title">Top Financial Relationships</div>
+                            <div class="insight-card-subtitle">People and businesses you interact with most</div>
+                        </div>
+                        <div class="insight-card-icon">👥</div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        @foreach (var counterparty in analysis.TopCounterparties.OrderByDescending(c => Math.Abs(c.TotalAmount)).Take(10))
+                        {
+                            <div class="counterparty-item">
+                                <div>
+                                    <div class="counterparty-name">@counterparty.Counterparty</div>
+                                    <div class="counterparty-count">@counterparty.TransactionCount transactions</div>
+                                </div>
+                                <div class="counterparty-amounts">
+                                    @if (counterparty.AmountSent != 0)
+                                    {
+                                        <div class="counterparty-sent">Sent: @counterparty.AmountSent.ToString("C0", currencyCulture)</div>
+                                    }
+                                    @if (counterparty.AmountReceived != 0)
+                                    {
+                                        <div class="counterparty-received">Received: @counterparty.AmountReceived.ToString("C0", currencyCulture)</div>
+                                    }
+                                    <div class="counterparty-net" style="color: @(counterparty.NetAmount >= 0 ? "var(--success)" : "var(--danger)")">
+                                        Net: @counterparty.NetAmount.ToString("C0", currencyCulture)
                                     </div>
                                 </div>
+                            </div>
+                        }
+                    </div>
 
-                                <!-- Individual Largest Transactions with Full Details -->
-                                @if (analysis.TransactionTypeAnalyses.Any(t => t.LargestTransaction != null))
+                    @if (analysis.TopCounterparties.Count() > 10)
+                    {
+                        <div class="expandable-section">
+                            <button class="expand-toggle" onclick="toggleExpand(this, 'counterparties_@currency')">
+                                <span>Show All @analysis.TopCounterparties.Count() Counterparties</span>
+                                <span>▼</span>
+                            </button>
+                            <div class="expandable-content" id="counterparties_@currency">
+                                @foreach (var counterparty in analysis.TopCounterparties.OrderByDescending(c => Math.Abs(c.TotalAmount)).Skip(10))
                                 {
-                                    <div class="card-body border-top">
-                                        <h6 class="fw-bold mb-3">
-                                            <i class="fas fa-medal text-gold me-2"></i>
-                                            Significant Transaction Details
-                                        </h6>
-                                        <div class="row g-0">
-                                            @foreach (var typeAnalysis in analysis.TransactionTypeAnalyses.Where(t => t.LargestTransaction != null))
+                                    <div class="counterparty-item">
+                                        <div>
+                                            <div class="counterparty-name">@counterparty.Counterparty</div>
+                                            <div class="counterparty-count">@counterparty.TransactionCount transactions</div>
+                                        </div>
+                                        <div class="counterparty-amounts">
+                                            @if (counterparty.AmountSent != 0)
                                             {
-                                                var transaction = typeAnalysis.LargestTransaction!;
-                                                <div class="col-lg-6 p-0">
-                                                    <div class="border-end border-bottom p-4">
-                                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                                            <div>
-                                                                <h6 class="fw-bold mb-1">@typeAnalysis.TransactionType.Replace("_", " ")</h6>
-                                                                <span class="badge @(transaction.Status == "COMPLETED" ? "bg-success" : "bg-warning")">
-                                                                    @transaction.Status
-                                                                </span>
-                                                            </div>
-                                                            <div class="text-end">
-                                                                <div class="h5 fw-bold mb-0 @(transaction.Amount.Amount >= 0 ? "text-success" : "text-danger")">
-                                                                    @transaction.Amount.Amount.ToString("C", currencyCulture)
-                                                                </div>
-                                                                @if (transaction.Fee.Amount > 0)
-                                                                {
-                                                                    <small class="text-muted">Fee: @transaction.Fee.Amount.ToString("C", currencyCulture)</small>
-                                                                }
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="row g-2 small">
-                                                            <div class="col-6">
-                                                                <strong>Date:</strong><br>
-                                                                <span class="text-muted">@transaction.Date.ToString("MMM dd, yyyy")</span>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <strong>Time:</strong><br>
-                                                                <span class="text-muted">@transaction.Time.ToString(@"hh\:mm")</span>
-                                                            </div>
-                                                            @if (!string.IsNullOrEmpty(transaction.Counterparty))
-                                                            {
-                                                                <div class="col-12 mt-2">
-                                                                    <strong>Counterparty:</strong><br>
-                                                                    <span class="text-muted">@transaction.Counterparty</span>
-                                                                </div>
-                                                            }
-                                                            @if (transaction.TransactionId.HasValue)
-                                                            {
-                                                                <div class="col-12 mt-2">
-                                                                    <strong>Transaction ID:</strong><br>
-                                                                    <code class="small">@transaction.TransactionId.Value</code>
-                                                                </div>
-                                                            }
-                                                            @if (!string.IsNullOrEmpty(transaction.Note))
-                                                            {
-                                                                <div class="col-12 mt-2">
-                                                                    <strong>Note:</strong><br>
-                                                                    <span class="text-muted">@transaction.Note</span>
-                                                                </div>
-                                                            }
-                                                            <div class="col-12 mt-2">
-                                                                <strong>Balance After:</strong><br>
-                                                                <span class="text-info">@transaction.BalanceAfter.Amount.ToString("C", currencyCulture)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <div class="counterparty-sent">Sent: @counterparty.AmountSent.ToString("C0", currencyCulture)</div>
                                             }
+                                            @if (counterparty.AmountReceived != 0)
+                                            {
+                                                <div class="counterparty-received">Received: @counterparty.AmountReceived.ToString("C0", currencyCulture)</div>
+                                            }
+                                            <div class="counterparty-net" style="color: @(counterparty.NetAmount >= 0 ? "var(--success)" : "var(--danger)")">
+                                                Net: @counterparty.NetAmount.ToString("C0", currencyCulture)
+                                            </div>
                                         </div>
                                     </div>
                                 }
                             </div>
                         </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Counterparties By Transaction Type Section -->
-            @if (analysis.CounterpartiesByTransactionType.Any())
-            {
-                <div id="counterparties-by-transaction-type_@currency" class="currency-content-section" style="display: none;">
-                    <div class="row g-4 mb-4">
-                        <div class="col-12">
-                            <div class="card table-card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="fw-bold mb-0">
-                                        <i class="fas fa-network-wired text-info me-2"></i>
-                                        Counterparties by Transaction Type
-                                    </h5>
-                                    <p class="text-muted small mb-0">Transaction patterns between you and counterparties</p>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        @foreach (var typeGroup in analysis.CounterpartiesByTransactionType)
-                                        {
-                                            <div class="col-lg-6 mb-4">
-                                                <div class="border rounded p-3 bg-light">
-                                                    <h6 class="fw-bold text-primary mb-3">
-                                                        <i class="fas fa-tag me-1"></i>
-                                                        @typeGroup.Key.Replace("_", " ")
-                                                    </h6>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm table-borderless mb-0">
-                                                            <thead>
-                                                                <tr class="border-bottom">
-                                                                    <th class="small">Counterparty</th>
-                                                                    <th class="small text-center">Count</th>
-                                                                    <th class="small text-end">Total</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                @foreach (var counterparty in typeGroup.Value)
-                                                                {
-                                                                    <tr>
-                                                                        <td class="small">
-                                                                            @(counterparty.Counterparty)
-                                                                        </td>
-                                                                        <td class="small text-center">
-                                                                            <span class="badge bg-info badge-sm">@counterparty.Count</span>
-                                                                        </td>
-                                                                        <td class="small text-end">
-                                                                            @counterparty.TotalAmount.ToString("C0", currencyCulture)
-                                                                        </td>
-                                                                    </tr>
-                                                                }
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Income Statistics Section -->
-            @if (analysis.MonthlyAnalyses.Any())
-            {
-                <div id="income-statistics_@currency" class="currency-content-section" style="display: none;">
-                    <div class="row g-4 mb-5">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="fw-bold mb-0">Income Statistics</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row text-center">
-                                        <div class="col-md-3">
-                                            <h6 class="text-muted">Average Monthly</h6>
-                                            <h4 class="fw-bold text-primary">@analysis.AverageMonthlyIncome.ToString("C", currencyCulture)</h4>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h6 class="text-muted">Highest Month</h6>
-                                            <h4 class="fw-bold text-success">@analysis.MaxMonthlyIncome.ToString("C", currencyCulture)</h4>
-                                            @if (analysis.BestIncomeMonth != null)
-                                            {
-                                                <small class="text-muted">@analysis.BestIncomeMonth.MonthName</small>
-                                            }
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h6 class="text-muted">Lowest Month</h6>
-                                            <h4 class="fw-bold text-warning">@analysis.MinMonthlyIncome.ToString("C", currencyCulture)</h4>
-                                            @if (analysis.WorstIncomeMonth != null)
-                                            {
-                                                <small class="text-muted">@analysis.WorstIncomeMonth.MonthName</small>
-                                            }
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h6 class="text-muted">Total Months</h6>
-                                            <h4 class="fw-bold text-info">@analysis.MonthlyAnalyses.Count</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-</div>
-
-<!-- Chart.js Library and Custom Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // This script section creates all the interactive charts for the financial analysis
-    // Each chart is designed to provide specific insights into transaction patterns
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Configure Chart.js defaults for consistent styling
-        Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-        Chart.defaults.color = '#6c757d';
-        Chart.defaults.backgroundColor = 'rgba(13, 110, 253, 0.1)';
-        Chart.defaults.borderColor = 'rgba(13, 110, 253, 0.8)';
-
-        // Currency navigation functionality
-        function initializeCurrencyNavigation() {
-            document.querySelectorAll('.currency-nav .nav-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    const currency = this.getAttribute('data-currency');
-                    const section = this.getAttribute('data-section');
-                    const targetId = this.getAttribute('href').substring(1); // Remove #
-
-                    // Update active nav item for this currency
-                    const currencyNav = this.closest('.currency-nav');
-                    currencyNav.querySelectorAll('.nav-link').forEach(navLink => {
-                        navLink.classList.remove('active');
-                    });
-                    this.classList.add('active');
-
-                    // Hide all sections for this currency
-                    const currencySection = document.getElementById(`currency_${currency}`);
-                    currencySection.querySelectorAll('.currency-content-section').forEach(contentSection => {
-                        contentSection.style.display = 'none';
-                    });
-
-                    // Show target section
-                    const targetSection = document.getElementById(targetId);
-                    if (targetSection) {
-                        targetSection.style.display = 'block';
-
-                        // Smooth scroll to section
-                        targetSection.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
                     }
-                });
-            });
+                </div>
+
+                <!-- Transaction Type Details -->
+                <div class="full-width-card">
+                    <div class="insight-card-header">
+                        <div>
+                            <div class="insight-card-title">Transaction Type Breakdown</div>
+                            <div class="insight-card-subtitle">Detailed analysis by transaction category</div>
+                        </div>
+                        <div class="insight-card-icon">📋</div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Count</th>
+                                <th>Average</th>
+                                <th>Largest</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var typeAnalysis in analysis.TransactionTypeAnalyses.OrderByDescending(t => Math.Abs(t.TotalAmount)))
+                            {
+                                <tr>
+                                    <td><strong>@typeAnalysis.TransactionType.Replace("_", " ")</strong></td>
+                                    <td><span class="badge badge-primary">@typeAnalysis.Count</span></td>
+                                    <td>@typeAnalysis.AverageAmount.ToString("C", currencyCulture)</td>
+                                    <td>@typeAnalysis.LargestAmount.ToString("C", currencyCulture)</td>
+                                    <td><strong>@typeAnalysis.TotalAmount.ToString("C", currencyCulture)</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         }
+    </div>
+
+    <script>
+        // Currency Switching
+        function switchCurrency(currency) {
+            // Update tabs
+            document.querySelectorAll('.currency-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.currency-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('currency_' + currency).classList.add('active');
+        }
+
+        // Expand/Collapse
+        function toggleExpand(button, contentId) {
+            const content = document.getElementById(contentId);
+            const isExpanded = content.classList.contains('expanded');
+
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                button.querySelector('span:last-child').textContent = '▼';
+                button.querySelector('span:first-child').textContent = button.querySelector('span:first-child').textContent.replace('Show Less', 'Show All');
+            } else {
+                content.classList.add('expanded');
+                button.querySelector('span:last-child').textContent = '▲';
+                button.querySelector('span:first-child').textContent = button.querySelector('span:first-child').textContent.replace('Show All', 'Show Less');
+            }
+        }
+
+        // Initialize Charts
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#666';
 
         @foreach (var currencyAnalysis in Model.CurrencyAnalyses)
         {
-                                                var currency = currencyAnalysis.Key;
-                                                var analysis = currencyAnalysis.Value;
+            var currency = currencyAnalysis.Key;
+            var analysis = currencyAnalysis.Value;
 
-                                                <text>
-                                                // Balance Tracking Chart - Shows how account balance changes over time
-                                                // This is crucial for understanding financial health trends
-                                                if (document.getElementById('balanceChart_@currency')) {
-                                                    const balanceCtx = document.getElementById('balanceChart_@currency').getContext('2d');
-                                                    new Chart(balanceCtx, {
-                                                        type: 'line',
-                                                        data: {
-                                                            labels: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => $"'{b.FormattedDate}'")))],
-                                                            datasets: [{
-                                                                label: 'Account Balance',
-                                                                data: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => b.Balance.ToString("F2"))))],
-                                                                borderColor: 'rgb(13, 110, 253)',
-                                                                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                                                                borderWidth: 3,
-                                                                fill: true,
-                                                                tension: 0.4,
-                                                                pointBackgroundColor: 'rgb(13, 110, 253)',
-                                                                pointBorderColor: 'white',
-                                                                pointBorderWidth: 2,
-                                                                pointRadius: 6
-                                                            }]
-                                                        },
-                                                        options: {
-                                                            responsive: true,
-                                                            maintainAspectRatio: false,
-                                                            plugins: {
-                                                                legend: {
-                                                                    display: false
-                                                                }
-                                                            },
-                                                            scales: {
-                                                                y: {
-                                                                    beginAtZero: false,
-                                                                    grid: {
-                                                                        color: 'rgba(0,0,0,0.1)'
-                                                                    },
-                                                                    ticks: {
-                                                                        callback: function(value) {
-                                                                            return new Intl.NumberFormat('en-US', {
-                                                                                style: 'currency',
-                                                                                currency: '@currency'
-                                                                            }).format(value);
-                                                                        }
-                                                                    }
-                                                                },
-                                                                x: {
-                                                                    grid: {
-                                                                        display: false
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    });
-                                                }
-
-                                                // Monthly Cash Flow Chart - Income vs Expenses comparison
-                                                // This helps identify spending patterns and income trends
-                                                if (document.getElementById('cashFlowChart_@currency')) {
-                                                    const cashFlowCtx = document.getElementById('cashFlowChart_@currency').getContext('2d');
-                                                    new Chart(cashFlowCtx, {
-                                                        type: 'bar',
-                                                        data: {
-                                                            labels: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => $"'{m.MonthName}'")))],
-                                                            datasets: [{
-                                                                label: 'Income',
-                                                                data: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Income.ToString("F2"))))],
-                                                                backgroundColor: 'rgba(25, 135, 84, 0.8)',
-                                                                borderColor: 'rgb(25, 135, 84)',
-                                                                borderWidth: 1
-                                                            }, {
-                                                                label: 'Expenses',
-                                                                data: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Expenses.ToString("F2"))))],
-                                                                backgroundColor: 'rgba(220, 53, 69, 0.8)',
-                                                                borderColor: 'rgb(220, 53, 69)',
-                                                                borderWidth: 1
-                                                            }]
-                                                        },
-                                                        options: {
-                                                            responsive: true,
-                                                            maintainAspectRatio: false,
-                                                            scales: {
-                                                                y: {
-                                                                    beginAtZero: true,
-                                                                    grid: {
-                                                                        color: 'rgba(0,0,0,0.1)'
-                                                                    },
-                                                                    ticks: {
-                                                                        callback: function(value) {
-                                                                            return new Intl.NumberFormat('en-US', {
-                                                                                style: 'currency',
-                                                                                currency: '@currency'
-                                                                            }).format(value);
-                                                                        }
-                                                                    }
-                                                                },
-                                                                x: {
-                                                                    grid: {
-                                                                        display: false
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    });
-                                                }
-
-                                                // Transaction Types Distribution - Shows transaction pattern breakdown
-                                                // Helps understand what types of transactions are most common
-                                                if (document.getElementById('transactionTypesChart_@currency')) {
-                                                    const typeCtx = document.getElementById('transactionTypesChart_@currency').getContext('2d');
-                                                    const isMobile = window.innerWidth < 768;
-
-                                                    new Chart(typeCtx, {
-                                                        type: 'doughnut',
-                                                        data: {
-                                                            labels: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => $"'{t.TransactionType.Replace("_", " ")}'")))],
-                                                            datasets: [{
-                                                                data: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => t.Count.ToString())))],
-                                                                backgroundColor: [
-                                                                    'rgba(13, 110, 253, 0.8)',
-                                                                    'rgba(25, 135, 84, 0.8)',
-                                                                    'rgba(255, 193, 7, 0.8)',
-                                                                    'rgba(220, 53, 69, 0.8)',
-                                                                    'rgba(111, 66, 193, 0.8)',
-                                                                    'rgba(13, 202, 240, 0.8)'
-                                                                ],
-                                                                borderWidth: 2,
-                                                                borderColor: 'white'
-                                                            }]
-                                                        },
-                                                        options: {
-                                                            responsive: true,
-                                                            maintainAspectRatio: false,
-                                                            plugins: {
-                                                                legend: {
-                                                                    position: 'bottom',
-                                                                    labels: {
-                                                                        padding: isMobile ? 10 : 20,
-                                                                        usePointStyle: true,
-                                                                        font: {
-                                                                            size: isMobile ? 11 : 12
-                                                                        },
-                                                                        boxWidth: isMobile ? 15 : 20,
-                                                                        boxHeight: isMobile ? 15 : 20
-                                                                    },
-                                                                    maxHeight: isMobile ? 150 : undefined
-                                                                }
-                                                            }
-                                                        }
-                                                    });
-                                                }
-
-                                                // Yearly Analysis Chart - Long-term trend visualization
-                                                // Essential for understanding annual financial performance
-                                                if (document.getElementById('yearlyChart_@currency')) {
-                                                    const yearlyCtx = document.getElementById('yearlyChart_@currency').getContext('2d');
-                                                    new Chart(yearlyCtx, {
-                                                        type: 'bar',
-                                                        data: {
-                                                            labels: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.Year.ToString())))],
-                                                            datasets: [{
-                                                                label: 'Net Income',
-                                                                data: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.NetIncome.ToString("F2"))))],
-                                                                backgroundColor: function(context) {
-                                                                    const value = context.parsed.y;
-                                                                    return value >= 0 ? 'rgba(25, 135, 84, 0.8)' : 'rgba(220, 53, 69, 0.8)';
-                                                                },
-                                                                borderColor: function(context) {
-                                                                    const value = context.parsed.y;
-                                                                    return value >= 0 ? 'rgb(25, 135, 84)' : 'rgb(220, 53, 69)';
-                                                                },
-                                                                borderWidth: 1
-                                                            }]
-                                                        },
-                                                        options: {
-                                                            responsive: true,
-                                                            maintainAspectRatio: false,
-                                                            scales: {
-                                                                y: {
-                                                                    beginAtZero: true,
-                                                                    grid: {
-                                                                        color: 'rgba(0,0,0,0.1)'
-                                                                    },
-                                                                    ticks: {
-                                                                        callback: function(value) {
-                                                                            return new Intl.NumberFormat('en-US', {
-                                                                                style: 'currency',
-                                                                                currency: '@currency'
-                                                                            }).format(value);
-                                                                        }
-                                                                    }
-                                                                },
-                                                                x: {
-                                                                    grid: {
-                                                                        display: false
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    });
-                                                }
-                                                </text>
-        }
-
-        // Function to toggle counterparties view between limited and full
-        window.toggleCounterpartiesView = function(currency) {
-            const tableBody = document.getElementById(`counterpartiesTableBody_${currency}`);
-            const toggleButton = document.getElementById(`toggleCounterparties_${currency}`);
-            const hiddenRows = tableBody.querySelectorAll('.counterparty-row-hidden');
-            const totalRows = tableBody.querySelectorAll('tr').length;
-            const isExpanded = hiddenRows.length > 0 && hiddenRows[0].style.display !== 'none';
-
-            if (isExpanded) {
-                // Collapse - hide additional rows
-                hiddenRows.forEach(row => {
-                    row.style.display = 'none';
+            <text>
+            // Balance Chart
+            if (document.getElementById('balanceChart_@currency')) {
+                new Chart(document.getElementById('balanceChart_@currency').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => $"'{b.FormattedDate}'")))],
+                        datasets: [{
+                            label: 'Balance',
+                            data: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => b.Balance.ToString("F2"))))],
+                            borderColor: 'rgb(102, 126, 234)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
                 });
-                toggleButton.innerHTML = '<i class="fas fa-chevron-down me-1"></i>Show All (' + totalRows + ' total)';
-            } else {
-                // Expand - show all rows
-                hiddenRows.forEach(row => {
-                    row.style.display = '';
-                });
-                toggleButton.innerHTML = '<i class="fas fa-chevron-up me-1"></i>Show Less (20 only)';
             }
-        };
 
-        // Table sorting functionality for counterparties tables
-        function initializeTableSorting() {
-            document.querySelectorAll('[id^="counterpartiesTable_"]').forEach(table => {
-                const headers = table.querySelectorAll('th.sortable');
-
-                // Initialize sort state
-                table.sortState = { column: 'net', direction: 'desc' };
-
-                // Update sort icons and header highlighting
-                function updateSortIcons(activeHeader, direction) {
-                    headers.forEach(header => {
-                        const icon = header.querySelector('i');
-                        header.classList.remove('active-sort');
-
-                        if (header === activeHeader) {
-                            header.classList.add('active-sort');
-                            icon.className = direction === 'asc' ? 'fas fa-sort-up ms-1' : 'fas fa-sort-down ms-1';
-                        } else {
-                            icon.className = 'fas fa-sort ms-1';
+            // Cash Flow Chart
+            if (document.getElementById('cashFlowChart_@currency')) {
+                new Chart(document.getElementById('cashFlowChart_@currency').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => $"'{m.MonthName}'")))],
+                        datasets: [
+                            {
+                                label: 'Income',
+                                data: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Income.ToString("F2"))))],
+                                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            },
+                            {
+                                label: 'Expenses',
+                                data: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Expenses.ToString("F2"))))],
+                                backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            x: { grid: { display: false } }
                         }
-                    });
-                }
-
-                // Apply sort to table function - FIXED to sort all data and limit visibility
-                function applySortToTable(targetTable, column, direction) {
-                    const tbody = targetTable.querySelector('tbody');
-                    const allRows = Array.from(tbody.querySelectorAll('tr'));
-
-                    // Check if currently expanded
-                    const isExpanded = allRows.some(row =>
-                        row.classList.contains('counterparty-row-hidden') &&
-                        row.style.display !== 'none'
-                    );
-
-                    // Sort ALL rows (both visible and hidden)
-                    allRows.sort((a, b) => {
-                        let aValue, bValue;
-
-                        if (column === 'counterparty') {
-                            aValue = a.querySelector('td:first-child').getAttribute('data-value');
-                            bValue = b.querySelector('td:first-child').getAttribute('data-value');
-                        } else {
-                            const columnIndex = column === 'sent' ? 1 : column === 'received' ? 2 : 3;
-                            aValue = parseFloat(a.querySelector(`td:nth-child(${columnIndex + 1})`).getAttribute('data-value'));
-                            bValue = parseFloat(b.querySelector(`td:nth-child(${columnIndex + 1})`).getAttribute('data-value'));
-                        }
-
-                        if (direction === 'asc') {
-                            return column === 'counterparty' ?
-                                aValue.localeCompare(bValue) : aValue - bValue;
-                        } else {
-                            return column === 'counterparty' ?
-                                bValue.localeCompare(aValue) : bValue - aValue;
-                        }
-                    });
-
-                    // Clear tbody and re-append all sorted rows
-                    tbody.innerHTML = '';
-
-                    // Add sorted rows and apply correct visibility classes
-                    allRows.forEach((row, index) => {
-                        if (index < 20) {
-                            // First 20 rows are always visible
-                            row.className = 'counterparty-row-visible';
-                            row.style.display = '';
-                        } else {
-                            // Rows beyond 20 are hidden unless expanded
-                            row.className = 'counterparty-row-hidden';
-                            row.style.display = isExpanded ? '' : 'none';
-                        }
-                        tbody.appendChild(row);
-                    });
-                }
-
-                // Make applySortToTable available globally for toggle function
-                window.applySortToTable = applySortToTable;
-
-                // Sort table rows
-                function sortTable(column, direction) {
-                    applySortToTable(table, column, direction);
-                    table.sortState = { column, direction };
-                }
-
-                // Add click event listeners to sortable headers
-                headers.forEach(header => {
-                    header.addEventListener('click', () => {
-                        const column = header.getAttribute('data-sort');
-                        let direction = 'desc';
-
-                        // Toggle direction if clicking the same column
-                        if (table.sortState.column === column) {
-                            direction = table.sortState.direction === 'desc' ? 'asc' : 'desc';
-                        }
-
-                        sortTable(column, direction);
-                        updateSortIcons(header, direction);
-                    });
+                    }
                 });
+            }
 
-                // Set initial sort state - Net Balance column starts highlighted with down arrow
-                const netHeader = table.querySelector('[data-sort="net"]');
-                if (netHeader) {
-                    updateSortIcons(netHeader, 'desc');
-                }
-            });
+            // Transaction Types Chart
+            if (document.getElementById('transactionTypesChart_@currency')) {
+                new Chart(document.getElementById('transactionTypesChart_@currency').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => $"'{t.TransactionType.Replace("_", " ")}'")))],
+                        datasets: [{
+                            data: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => t.Count.ToString())))],
+                            backgroundColor: [
+                                'rgba(102, 126, 234, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(245, 158, 11, 0.8)',
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(139, 92, 246, 0.8)',
+                                'rgba(59, 130, 246, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+
+            // Yearly Chart
+            if (document.getElementById('yearlyChart_@currency')) {
+                new Chart(document.getElementById('yearlyChart_@currency').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.Year.ToString())))],
+                        datasets: [{
+                            label: 'Net Income',
+                            data: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.NetIncome.ToString("F2"))))],
+                            backgroundColor: function(context) {
+                                const value = context.parsed.y;
+                                return value >= 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)';
+                            }
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+            </text>
         }
-
-        // Initialize all functionality
-        initializeCurrencyNavigation();
-        initializeTableSorting();
-    });
-</script>
-
-<style>
-    /* Modern, clean styling for the analysis dashboard */
-    body {
-        background-color: #f8f9fa;
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    }
-
-    .stat-card, .metric-card, .chart-card, .table-card {
-        border-radius: 16px;
-        transition: all 0.3s ease;
-    }
-
-        .stat-card:hover, .metric-card:hover, .chart-card:hover, .table-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
-        }
-
-    .chart-card {
-        min-height: 400px;
-    }
-
-    .card-header {
-        border-radius: 16px 16px 0 0 !important;
-    }
-
-    .table th {
-        border-top: none;
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.875rem;
-    }
-
-    .table td {
-        vertical-align: middle;
-        border-color: #f8f9fa;
-    }
-
-    .badge {
-        font-size: 0.75rem;
-        padding: 0.5em 0.75em;
-    }
-
-    .badge-sm {
-        font-size: 0.7rem;
-        padding: 0.25em 0.5em;
-    }
-
-    .currency-section {
-        background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    }
-
-    .text-primary {
-        background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    canvas {
-        max-height: 300px;
-    }
-
-    /* Mobile responsive canvas height for better chart visibility */
-    @@media (max-width: 768px) {
-        .transaction-types-canvas {
-            height: 1000px !important;
-            max-height: 1000px !important;
-        }
-
-        .chart-card {
-            min-height: 400px;
-        }
-    }
-
-    .text-gold {
-        color: #ffc107 !important;
-    }
-
-    /* Enhanced styling for new sections */
-    .border-end:last-child {
-        border-right: none !important;
-    }
-
-    .border-bottom:last-child {
-        border-bottom: none !important;
-    }
-
-    /* Table sorting styles */
-    .sortable:hover {
-        background-color: rgba(0,0,0,0.05) !important;
-    }
-
-    .sortable i {
-        opacity: 0.6;
-        transition: opacity 0.2s ease;
-    }
-
-    .sortable:hover i {
-        opacity: 1;
-    }
-
-    .fa-sort-up, .fa-sort-down {
-        opacity: 1 !important;
-        color: #0d6efd;
-    }
-
-    /* Active sort column highlighting */
-    .active-sort {
-        background-color: rgba(13, 110, 253, 0.1) !important;
-        font-weight: 700 !important;
-        color: #0d6efd !important;
-    }
-
-        .active-sort:hover {
-            background-color: rgba(13, 110, 253, 0.15) !important;
-        }
-
-    /* Expand/Collapse functionality styles */
-    .card-footer {
-        border-radius: 0 0 16px 16px !important;
-    }
-
-    .counterparty-row-hidden {
-        animation: fadeIn 0.3s ease-in-out;
-    }
-
-    @@keyframes fadeIn {
-        from
-
-    {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-
-    }
-
-    .btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-
-    /* Responsive adjustments for transaction details */
-    @@media (max-width: 991.98px) {
-        .border-end
-
-    {
-        border-right: none !important;
-        border-bottom: 1px solid #dee2e6 !important;
-    }
-
-    }
-
-    /* Currency Navigation Styles */
-    .currency-nav .nav-pills .nav-link {
-        color: #6c757d;
-        background: transparent;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        margin: 0.25rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-        transition: all 0.3s ease;
-    }
-
-        .currency-nav .nav-pills .nav-link:hover {
-            color: #0d6efd;
-            background: rgba(13, 110, 253, 0.1);
-            border-color: #0d6efd;
-            transform: translateY(-1px);
-        }
-
-        .currency-nav .nav-pills .nav-link.active {
-            color: white;
-            background: #0d6efd;
-            border-color: #0d6efd;
-            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
-        }
-
-        .currency-nav .nav-pills .nav-link i {
-            font-size: 0.8rem;
-        }
-
-    /* Content section transitions */
-    .currency-content-section {
-        transition: opacity 0.3s ease-in-out;
-    }
-
-    /* Responsive navigation */
-    @@media (max-width: 768px) {
-        .currency-nav .nav-pills
-
-    {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .currency-nav .nav-pills .nav-link {
-        margin: 0.125rem 0;
-    }
-
-    }
-</style>
+    </script>
+</body>
+</html>
