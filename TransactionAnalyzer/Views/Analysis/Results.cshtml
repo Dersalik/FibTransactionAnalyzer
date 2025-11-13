@@ -879,7 +879,7 @@
                                                 // Helps understand what types of transactions are most common
                                                 if (document.getElementById('transactionTypesChart_@currency')) {
                                                     const typeCtx = document.getElementById('transactionTypesChart_@currency').getContext('2d');
-                                                    const isMobile = window.innerWidth <= 768;
+                                                    const isMobile = window.innerWidth < 768;
 
                                                     new Chart(typeCtx, {
                                                         type: 'doughnut',
@@ -1176,10 +1176,10 @@
     }
 
     /* Mobile responsive canvas height for better chart visibility */
-    @media (max-width: 768px) {
+    @@media (max-width: 768px) {
         .transaction-types-canvas {
-            height: 450px !important;
-            max-height: 450px !important;
+            height: 1000px !important;
+            max-height: 1000px !important;
         }
 
         .chart-card {
