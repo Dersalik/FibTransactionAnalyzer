@@ -249,7 +249,7 @@
                                 <p class="text-muted small mb-0">Distribution by transaction type</p>
                             </div>
                             <div class="card-body">
-                                <canvas id="transactionTypesChart_@currency" height="300"></canvas>
+                                <canvas id="transactionTypesChart_@currency" class="transaction-types-canvas" height="300"></canvas>
                             </div>
                         </div>
                     </div>
@@ -879,6 +879,8 @@
                                                 // Helps understand what types of transactions are most common
                                                 if (document.getElementById('transactionTypesChart_@currency')) {
                                                     const typeCtx = document.getElementById('transactionTypesChart_@currency').getContext('2d');
+                                                    const isMobile = window.innerWidth < 768;
+
                                                     new Chart(typeCtx, {
                                                         type: 'doughnut',
                                                         data: {
@@ -904,9 +906,15 @@
                                                                 legend: {
                                                                     position: 'bottom',
                                                                     labels: {
-                                                                        padding: 20,
-                                                                        usePointStyle: true
-                                                                    }
+                                                                        padding: isMobile ? 10 : 20,
+                                                                        usePointStyle: true,
+                                                                        font: {
+                                                                            size: isMobile ? 11 : 12
+                                                                        },
+                                                                        boxWidth: isMobile ? 15 : 20,
+                                                                        boxHeight: isMobile ? 15 : 20
+                                                                    },
+                                                                    maxHeight: isMobile ? 150 : undefined
                                                                 }
                                                             }
                                                         }
@@ -1165,6 +1173,18 @@
 
     canvas {
         max-height: 300px;
+    }
+
+    /* Mobile responsive canvas height for better chart visibility */
+    @@media (max-width: 768px) {
+        .transaction-types-canvas {
+            height: 1000px !important;
+            max-height: 1000px !important;
+        }
+
+        .chart-card {
+            min-height: 400px;
+        }
     }
 
     .text-gold {
