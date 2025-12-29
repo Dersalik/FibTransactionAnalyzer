@@ -63,8 +63,8 @@ canvas {
 /* Mobile responsive canvas height for better chart visibility */
 @media (max-width: 768px) {
     .transaction-types-canvas {
-        height: 1000px !important;
-        max-height: 1000px !important;
+        height: 500px !important;
+        max-height: 500px !important;
     }
 
     .chart-card {

@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
 
                 const currency = this.getAttribute('data-currency');
-                const section = this.getAttribute('data-section');
                 const targetId = this.getAttribute('href').substring(1); // Remove #
 
                 // Update active nav item for this currency
