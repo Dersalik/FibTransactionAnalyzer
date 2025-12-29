@@ -21,7 +21,7 @@
                     {
                         <p class="text-muted small mb-0 mt-1">
                             <i class="fas fa-calendar me-1"></i>
-                            <strong>Date Range:</strong> 
+                            <strong>Date Range:</strong>
                             @if (Model.DateFrom.HasValue && Model.DateTo.HasValue)
                             {
                                 <span>@Model.DateFrom.Value.ToString("MMM dd, yyyy") - @Model.DateTo.Value.ToString("MMM dd, yyyy")</span>
@@ -152,118 +152,166 @@
                 </div>
             </div>
 
-            <!-- Dashboard Section -->
+            <!-- Dashboard Section - REDESIGNED -->
             <div id="dashboard_@currency" class="currency-content-section">
-                <!-- Financial Overview Cards for this Currency -->
-                <div class="row g-3 mb-4">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card metric-card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-1">Total Inflow</h6>
-                                        <h4 class="fw-bold text-success">@analysis.TotalInflow.ToString("C", currencyCulture)</h4>
-                                    </div>
-                                    <i class="fas fa-arrow-up text-success fs-2"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card metric-card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-1">Total Outflow</h6>
-                                        <h4 class="fw-bold text-danger">@analysis.TotalOutflow.ToString("C", currencyCulture)</h4>
-                                    </div>
-                                    <i class="fas fa-arrow-down text-danger fs-2"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card metric-card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-1">Net Amount</h6>
-                                        <h4 class="fw-bold @(analysis.NetAmount >= 0 ? "text-success" : "text-danger")">
+                <!-- Hero Financial Summary -->
+                <div class="dashboard-hero mb-5">
+                    <div class="card border-0 shadow-lg overflow-hidden">
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                <!-- Net Balance Hero -->
+                                <div class="col-lg-5 hero-net-section d-flex align-items-center justify-content-center p-5 @(analysis.NetAmount >= 0 ? "bg-success-gradient" : "bg-danger-gradient")">
+                                    <div class="text-center text-white">
+                                        <div class="hero-icon mb-3">
+                                            <i class="fas @(analysis.NetAmount >= 0 ? "fa-trending-up" : "fa-trending-down") fa-3x opacity-75"></i>
+                                        </div>
+                                        <span class="hero-label text-uppercase small fw-semibold opacity-75 d-block mb-2">Net Balance</span>
+                                        <h2 class="hero-value display-4 fw-bold mb-2">
                                             @analysis.NetAmount.ToString("C", currencyCulture)
-                                        </h4>
+                                        </h2>
+                                        <p class="hero-subtitle mb-0 opacity-75">
+                                            @(analysis.NetAmount >= 0 ? "You're in the positive!" : "Expenses exceeded income")
+                                        </p>
                                     </div>
-                                    <i class="fas @(analysis.NetAmount >= 0 ? "fa-plus" : "fa-minus") @(analysis.NetAmount >= 0 ? "text-success" : "text-danger") fs-2"></i>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card metric-card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h6 class="text-muted mb-1">Total Fees</h6>
-                                        <h4 class="fw-bold text-warning">@analysis.TotalFees.ToString("C", currencyCulture)</h4>
+                                <!-- Stats Grid -->
+                                <div class="col-lg-7 p-4">
+                                    <div class="row g-4 h-100">
+                                        <div class="col-6">
+                                            <div class="mini-stat-card h-100 rounded-4 p-4 border border-success border-opacity-25 bg-success bg-opacity-5">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <div class="stat-icon-wrapper rounded-circle bg-success bg-opacity-10 p-2 me-3">
+                                                        <i class="fas fa-arrow-down text-success"></i>
+                                                    </div>
+                                                    <span class="text-muted small fw-semibold text-uppercase">Total Inflow</span>
+                                                </div>
+                                                <div class="mini-stat-value h4 fw-bold text-success mb-0">@analysis.TotalInflow.ToString("C", currencyCulture)</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mini-stat-card h-100 rounded-4 p-4 border border-danger border-opacity-25 bg-danger bg-opacity-5">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <div class="stat-icon-wrapper rounded-circle bg-danger bg-opacity-10 p-2 me-3">
+                                                        <i class="fas fa-arrow-up text-danger"></i>
+                                                    </div>
+                                                    <span class="text-muted small fw-semibold text-uppercase">Total Outflow</span>
+                                                </div>
+                                                <div class="mini-stat-value h4 fw-bold text-danger mb-0">@analysis.TotalOutflow.ToString("C", currencyCulture)</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mini-stat-card h-100 rounded-4 p-4 border border-warning border-opacity-25 bg-warning bg-opacity-5">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <div class="stat-icon-wrapper rounded-circle bg-warning bg-opacity-10 p-2 me-3">
+                                                        <i class="fas fa-receipt text-warning"></i>
+                                                    </div>
+                                                    <span class="text-muted small fw-semibold text-uppercase">Total Fees</span>
+                                                </div>
+                                                <div class="mini-stat-value h4 fw-bold text-warning mb-0">@analysis.TotalFees.ToString("C", currencyCulture)</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mini-stat-card h-100 rounded-4 p-4 border border-info border-opacity-25 bg-info bg-opacity-5">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <div class="stat-icon-wrapper rounded-circle bg-info bg-opacity-10 p-2 me-3">
+                                                        <i class="fas fa-exchange-alt text-info"></i>
+                                                    </div>
+                                                    <span class="text-muted small fw-semibold text-uppercase">Transactions</span>
+                                                </div>
+                                                <div class="mini-stat-value h4 fw-bold text-info mb-0">@analysis.TransactionCount</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <i class="fas fa-receipt text-warning fs-2"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Charts Row - This contains the main visualizations for financial analysis -->
-                <div class="row g-4 mb-4">
-                    <!-- Account Balance Tracking Chart -->
-                    <div class="col-lg-6">
-                        <div class="card chart-card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white border-0 pb-0">
-                                <h5 class="fw-bold mb-0">Account Balance Tracking</h5>
-                                <p class="text-muted small mb-0">Balance changes over time</p>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="balanceChart_@currency" height="300"></canvas>
+                <!-- Account Balance Tracking Chart -->
+                <div class="dashboard-chart-section mb-5">
+                    <div class="card chart-card-full border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <div class="chart-icon-wrapper bg-primary bg-opacity-10 rounded-3 p-3 me-3">
+                                    <i class="fas fa-chart-area text-primary fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-1">Account Balance Tracking</h5>
+                                    <p class="text-muted small mb-0">See how your balance has changed over time</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Monthly Cash Flow Analysis Chart -->
-                    <div class="col-lg-6">
-                        <div class="card chart-card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white border-0 pb-0">
-                                <h5 class="fw-bold mb-0">Monthly Cash Flow</h5>
-                                <p class="text-muted small mb-0">Income vs Expenses by month</p>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="cashFlowChart_@currency" height="300"></canvas>
+                        <div class="card-body pt-0">
+                            <div class="chart-container-full">
+                                <canvas id="balanceChart_@currency"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="row g-4 mb-4">
-                    <!-- Transaction Types Analysis -->
-                    <div class="col-lg-6">
-                        <div class="card chart-card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white border-0 pb-0">
-                                <h5 class="fw-bold mb-0">Transaction Types</h5>
-                                <p class="text-muted small mb-0">Distribution by transaction type</p>
+                <!-- Monthly Cash Flow Analysis Chart -->
+                <div class="dashboard-chart-section mb-5">
+                    <div class="card chart-card-full border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <div class="chart-icon-wrapper bg-success bg-opacity-10 rounded-3 p-3 me-3">
+                                    <i class="fas fa-chart-bar text-success fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-1">Monthly Cash Flow</h5>
+                                    <p class="text-muted small mb-0">Compare your income and expenses month by month</p>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <canvas id="transactionTypesChart_@currency" class="transaction-types-canvas" height="300"></canvas>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div class="chart-container-full">
+                                <canvas id="cashFlowChart_@currency"></canvas>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Yearly Analysis Chart -->
-                    <div class="col-lg-6">
-                        <div class="card chart-card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white border-0 pb-0">
-                                <h5 class="fw-bold mb-0">Yearly Analysis</h5>
-                                <p class="text-muted small mb-0">Income and expenses by year</p>
+                <!-- Transaction Types Analysis -->
+                <div class="dashboard-chart-section mb-5">
+                    <div class="card chart-card-full border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <div class="chart-icon-wrapper bg-warning bg-opacity-10 rounded-3 p-3 me-3">
+                                    <i class="fas fa-chart-pie text-warning fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-1">Transaction Types Distribution</h5>
+                                    <p class="text-muted small mb-0">Breakdown of your transactions by category</p>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <canvas id="yearlyChart_@currency" height="300"></canvas>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div class="chart-container-doughnut">
+                                <canvas id="transactionTypesChart_@currency" class="transaction-types-canvas"></canvas>
+                            </div>
+                            <!-- Custom legend will be inserted here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yearly Analysis Chart -->
+                <div class="dashboard-chart-section mb-4">
+                    <div class="card chart-card-full border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <div class="chart-icon-wrapper bg-info bg-opacity-10 rounded-3 p-3 me-3">
+                                    <i class="fas fa-calendar-alt text-info fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-1">Yearly Analysis</h5>
+                                    <p class="text-muted small mb-0">Your net income performance by year</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div class="chart-container-full">
+                                <canvas id="yearlyChart_@currency"></canvas>
                             </div>
                         </div>
                     </div>
@@ -509,9 +557,9 @@
                                                             <td>
                                                                 <small class="text-muted">
                                                                     @(string.IsNullOrEmpty(largestType.LargestTransaction.Note) ? "-" :
-                                                                        (largestType.LargestTransaction.Note.Length > 30 ?
-                                                                        largestType.LargestTransaction.Note.Substring(0, 30) + "..." :
-                                                                        largestType.LargestTransaction.Note))
+                                                                                                                        (largestType.LargestTransaction.Note.Length > 30 ?
+                                                                                                                        largestType.LargestTransaction.Note.Substring(0, 30) + "..." :
+                                                                                                                        largestType.LargestTransaction.Note))
                                                                 </small>
                                                             </td>
                                                         }
@@ -722,30 +770,30 @@
     // Initialize charts for each currency with their specific data
     @foreach (var currencyAnalysis in Model.CurrencyAnalyses)
     {
-        var currency = currencyAnalysis.Key;
-        var analysis = currencyAnalysis.Value;
-        
-        <text>
-        // Create charts for @currency
-        window.createCurrencyCharts('@currency', {
-            balanceHistory: {
-                labels: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => $"'{b.FormattedDate}'")))],
-                data: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => b.Balance.ToString("F2"))))]
-            },
-            monthlyAnalyses: {
-                labels: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => $"'{m.MonthName}'")))],
-                income: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Income.ToString("F2"))))],
-                expenses: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Expenses.ToString("F2"))))]
-            },
-            transactionTypes: {
-                labels: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => $"'{t.TransactionType.Replace("_", " ")}'")))],
-                data: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => t.Count.ToString())))]
-            },
-            yearlyAnalyses: {
-                labels: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.Year.ToString())))],
-                data: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.NetIncome.ToString("F2"))))]
-            }
-        });
-        </text>
+            var currency = currencyAnalysis.Key;
+            var analysis = currencyAnalysis.Value;
+
+            <text>
+            // Create charts for @currency
+            window.createCurrencyCharts('@currency', {
+                balanceHistory: {
+                    labels: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => $"'{b.FormattedDate}'")))],
+                    data: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => b.Balance.ToString("F2"))))]
+                },
+                monthlyAnalyses: {
+                    labels: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => $"'{m.MonthName}'")))],
+                    income: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Income.ToString("F2"))))],
+                    expenses: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Expenses.ToString("F2"))))]
+                },
+                transactionTypes: {
+                    labels: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => $"'{t.TransactionType.Replace("_", " ")}'")))],
+                    data: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => t.Count.ToString())))]
+                },
+                yearlyAnalyses: {
+                    labels: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.Year.ToString())))],
+                    data: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.NetIncome.ToString("F2"))))]
+                }
+            });
+            </text>
     }
 </script>

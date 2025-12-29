@@ -2,7 +2,7 @@
 // This script creates all the interactive charts for the financial analysis
 // Each chart is designed to provide specific insights into transaction patterns
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Configure Chart.js defaults for consistent styling
     Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
     Chart.defaults.color = '#6c757d';
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Currency navigation functionality
     function initializeCurrencyNavigation() {
         document.querySelectorAll('.currency-nav .nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
 
                 const currency = this.getAttribute('data-currency');
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Function to toggle counterparties view between limited and full
-    window.toggleCounterpartiesView = function(currency) {
+    window.toggleCounterpartiesView = function (currency) {
         const tableBody = document.getElementById(`counterpartiesTableBody_${currency}`);
         const toggleButton = document.getElementById(`toggleCounterparties_${currency}`);
         const hiddenRows = tableBody.querySelectorAll('.counterparty-row-hidden');
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to create charts for a specific currency
 // This is called from the Razor view with the currency-specific data
-window.createCurrencyCharts = function(currency, analysisData) {
+window.createCurrencyCharts = function (currency, analysisData) {
     // Balance Tracking Chart - Shows how account balance changes over time
     // This is crucial for understanding financial health trends
     if (document.getElementById(`balanceChart_${currency}`)) {
@@ -221,7 +221,7 @@ window.createCurrencyCharts = function(currency, analysisData) {
                             color: 'rgba(0,0,0,0.1)'
                         },
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return new Intl.NumberFormat('en-US', {
                                     style: 'currency',
                                     currency: currency
@@ -271,7 +271,7 @@ window.createCurrencyCharts = function(currency, analysisData) {
                             color: 'rgba(0,0,0,0.1)'
                         },
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return new Intl.NumberFormat('en-US', {
                                     style: 'currency',
                                     currency: currency
@@ -294,25 +294,59 @@ window.createCurrencyCharts = function(currency, analysisData) {
     if (document.getElementById(`transactionTypesChart_${currency}`)) {
         const typeCtx = document.getElementById(`transactionTypesChart_${currency}`).getContext('2d');
         const isMobile = window.innerWidth < 768;
+        const numTypes = analysisData.transactionTypes.labels.length;
 
-        new Chart(typeCtx, {
+        // Color palette for up to 40 transaction types
+        const colorPalette = [
+            'rgba(13, 110, 253, 0.8)',
+            'rgba(25, 135, 84, 0.8)',
+            'rgba(255, 193, 7, 0.8)',
+            'rgba(220, 53, 69, 0.8)',
+            'rgba(111, 66, 193, 0.8)',
+            'rgba(13, 202, 240, 0.8)',
+            'rgba(108, 117, 125, 0.8)',
+            'rgba(253, 126, 20, 0.8)',
+            'rgba(214, 51, 132, 0.8)',
+            'rgba(32, 201, 151, 0.8)',
+            'rgba(102, 16, 242, 0.8)',
+            'rgba(255, 99, 132, 0.8)',
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(255, 206, 86, 0.8)',
+            'rgba(75, 192, 192, 0.8)',
+            'rgba(153, 102, 255, 0.8)',
+            'rgba(255, 159, 64, 0.8)',
+            'rgba(199, 199, 199, 0.8)',
+            'rgba(83, 102, 255, 0.8)',
+            'rgba(255, 99, 255, 0.8)',
+            'rgba(99, 255, 132, 0.8)',
+            'rgba(255, 215, 0, 0.8)',
+            'rgba(0, 191, 255, 0.8)',
+            'rgba(255, 105, 180, 0.8)',
+            'rgba(144, 238, 144, 0.8)',
+            'rgba(221, 160, 221, 0.8)',
+            'rgba(176, 196, 222, 0.8)',
+            'rgba(255, 182, 193, 0.8)',
+            'rgba(127, 255, 212, 0.8)',
+            'rgba(240, 128, 128, 0.8)',
+            'rgba(100, 149, 237, 0.8)',
+            'rgba(255, 218, 185, 0.8)',
+            'rgba(152, 251, 152, 0.8)',
+            'rgba(238, 130, 238, 0.8)',
+            'rgba(135, 206, 250, 0.8)',
+            'rgba(250, 128, 114, 0.8)',
+            'rgba(186, 85, 211, 0.8)',
+            'rgba(60, 179, 113, 0.8)',
+            'rgba(123, 104, 238, 0.8)',
+            'rgba(244, 164, 96, 0.8)'
+        ];
+
+        const chart = new Chart(typeCtx, {
             type: 'doughnut',
             data: {
                 labels: analysisData.transactionTypes.labels,
                 datasets: [{
                     data: analysisData.transactionTypes.data,
-                    backgroundColor: [
-                        'rgba(13, 110, 253, 0.8)',
-                        'rgba(25, 135, 84, 0.8)',
-                        'rgba(255, 193, 7, 0.8)',
-                        'rgba(220, 53, 69, 0.8)',
-                        'rgba(111, 66, 193, 0.8)',
-                        'rgba(13, 202, 240, 0.8)',
-                        'rgba(108, 117, 125, 0.8)',
-                        'rgba(253, 126, 20, 0.8)',
-                        'rgba(214, 51, 132, 0.8)',
-                        'rgba(32, 201, 151, 0.8)'
-                    ],
+                    backgroundColor: colorPalette.slice(0, numTypes),
                     borderWidth: 2,
                     borderColor: 'white'
                 }]
@@ -322,27 +356,58 @@ window.createCurrencyCharts = function(currency, analysisData) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: isMobile ? 8 : 12,
-                            usePointStyle: true,
-                            font: {
-                                size: isMobile ? 10 : 11
-                            },
-                            boxWidth: isMobile ? 12 : 15,
-                            boxHeight: isMobile ? 12 : 15
-                        },
-                        maxHeight: 200,
-                        display: true
+                        display: false // Disable built-in legend, we'll create custom HTML legend
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
                     }
                 },
                 layout: {
-                    padding: {
-                        bottom: 20
-                    }
+                    padding: 10
                 }
             }
         });
+
+        // Create custom HTML legend
+        const legendContainer = document.createElement('div');
+        legendContainer.className = 'custom-chart-legend';
+        legendContainer.id = `legend_${currency}`;
+
+        analysisData.transactionTypes.labels.forEach((label, index) => {
+            const value = analysisData.transactionTypes.data[index];
+            const color = colorPalette[index];
+
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `
+                <span class="legend-color" style="background-color: ${color}"></span>
+                <span class="legend-label">${label} (${value})</span>
+            `;
+
+            // Add click handler to toggle visibility
+            legendItem.addEventListener('click', () => {
+                const isHidden = !chart.getDataVisibility(index);
+                chart.toggleDataVisibility(index);
+                legendItem.classList.toggle('legend-item-hidden', !isHidden);
+                chart.update();
+            });
+
+            legendContainer.appendChild(legendItem);
+        });
+
+        // Insert legend after the canvas container
+        const canvasContainer = document.getElementById(`transactionTypesChart_${currency}`).closest('.chart-container-doughnut');
+        if (canvasContainer) {
+            canvasContainer.after(legendContainer);
+        }
     }
 
     // Yearly Analysis Chart - Long-term trend visualization
@@ -356,11 +421,11 @@ window.createCurrencyCharts = function(currency, analysisData) {
                 datasets: [{
                     label: 'Net Income',
                     data: analysisData.yearlyAnalyses.data,
-                    backgroundColor: function(context) {
+                    backgroundColor: function (context) {
                         const value = context.parsed.y;
                         return value >= 0 ? 'rgba(25, 135, 84, 0.8)' : 'rgba(220, 53, 69, 0.8)';
                     },
-                    borderColor: function(context) {
+                    borderColor: function (context) {
                         const value = context.parsed.y;
                         return value >= 0 ? 'rgb(25, 135, 84)' : 'rgb(220, 53, 69)';
                     },
@@ -377,7 +442,7 @@ window.createCurrencyCharts = function(currency, analysisData) {
                             color: 'rgba(0,0,0,0.1)'
                         },
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return new Intl.NumberFormat('en-US', {
                                     style: 'currency',
                                     currency: currency
