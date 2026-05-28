@@ -664,6 +664,29 @@ public class TransactionAnalysisServiceTest
     }
 
     [Fact]
+    public void AnalyzeTransactions_HandlesAllInternalTransferTypes()
+    {
+        // Arrange
+        var transactions = new List<FibTransaction>
+        {
+            new() { Amount = new MonetaryValue(100m, Currency.USD), TransactionType = "MONEY_BOX_TRANSFER" },
+            new() { Amount = new MonetaryValue(50m, Currency.USD), TransactionType = "AUTO_SAVING_TRANSFER" },
+            new() { Amount = new MonetaryValue(75m, Currency.USD), TransactionType = "PAYMENT" }
+        };
+
+        // Act
+        var result = _service.Analyze(transactions, true, DateTime.MinValue, DateTime.MaxValue);
+
+        // Assert
+        Assert.Equal(3, result.TotalTransactionCount);
+        Assert.Equal(1, result.FilteredTransactionCount); 
+        
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+        Assert.Equal(1, usdAnalysis.TransactionCount);
+        Assert.Equal(75m, usdAnalysis.TotalInflow);
+    }
+
+    [Fact]
     public void AnalyzeTransactions_HandlesTransactionsWithoutCounterparty()
     {
         // Arrange
