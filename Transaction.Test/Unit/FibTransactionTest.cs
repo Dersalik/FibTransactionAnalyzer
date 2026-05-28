@@ -59,4 +59,28 @@ public class FibTransactionTest
         Assert.Equal(Currency.IQD, transaction.Fee.Currency);
         Assert.Equal(Currency.USD, transaction.BalanceAfter.Currency);
     }
+
+    [Theory]
+    [InlineData("MONEY_BOX_TRANSFER", true)]
+    [InlineData("AUTO_SAVING_TRANSFER", true)]
+    [InlineData("TRANSFER", false)]
+    [InlineData("PAYMENT", false)]
+    [InlineData("DEPOSIT", false)]
+    [InlineData("WITHDRAWAL", false)]
+    [InlineData("ACCOUNT_TRANSFER", false)]
+    [InlineData("", false)]
+    public void IsInternal_ReturnsCorrectValue_ForTransactionType(string transactionType, bool expectedIsInternal)
+    {
+        // Arrange
+        var transaction = new FibTransaction
+        {
+            TransactionType = transactionType
+        };
+
+        // Act
+        var isInternal = transaction.IsInternal;
+
+        // Assert
+        Assert.Equal(expectedIsInternal, isInternal);
+    }
 }

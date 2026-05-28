@@ -5,6 +5,12 @@ namespace Transaction;
 
 public class FibTransaction
 {
+    private static readonly HashSet<string> InternalTransactionTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AUTO_SAVING_TRANSFER",
+        "MONEY_BOX_TRANSFER"
+    };
+
     [Name("ID")]
     [Required]
     public Guid Id { get; set; }
@@ -43,4 +49,9 @@ public class FibTransaction
 
     [Name("NOTE")]
     public string Note { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Determines whether this transaction is an internal transfer between accounts.
+    /// </summary>
+    public bool IsInternal => InternalTransactionTypes.Contains(TransactionType);
 }
