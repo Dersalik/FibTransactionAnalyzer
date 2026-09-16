@@ -387,9 +387,7 @@ public class TransactionAnalysisServiceTest
     [Fact]
     public void AnalyzeTransactions_BalanceHistoryIncludesInternalTransfers_WhenIgnoreInternalIsTrue()
     {
-        // Arrange - the most recent transaction is an internal transfer that lowers
-        // the real account balance. It must still appear on the balance line so the
-        // last point reflects the true current balance.
+        // Arrange - most recent transaction is an internal transfer that lowers the balance
         var transactions = new List<FibTransaction>
         {
             new()
@@ -418,17 +416,14 @@ public class TransactionAnalysisServiceTest
             }
         };
 
-        // Act - internal transactions are excluded from analytics.
+        // Act
         var result = _service.Analyze(transactions, true, DateTime.MinValue, DateTime.MaxValue);
 
         // Assert
         var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
 
-        // Internal transfer is excluded from the analytics set.
+        // Internal transfer excluded from analytics, but still on the balance line
         Assert.Equal(2, usdAnalysis.TransactionCount);
-
-        // ...but the balance line still includes it, so the last point is the true
-        // current balance (750) rather than the stale pre-transfer balance (950).
         Assert.Equal(3, usdAnalysis.BalanceHistory.Count);
         Assert.Equal(750m, usdAnalysis.BalanceHistory.Last().Balance);
     }

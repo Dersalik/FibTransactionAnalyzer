@@ -16,18 +16,11 @@ public class TransactionAnalysisService : ITransactionAnalysisService
 
         var allTransactions = transactions.ToList();
 
-        // Transactions within the selected date range, keeping internal transfers.
-        // The balance chart is always built from this set: BALANCE AFTER is an
-        // absolute account snapshot that already reflects internal transfers, so
-        // dropping those rows would leave a stale endpoint that no longer matches
-        // the real current balance.
         var dateFilteredTransactions = allTransactions
             .Where(t => t.Date >= dateFrom)
             .Where(t => t.Date <= dateTo)
             .ToList();
 
-        // Transactions used for income/expense/counterparty analytics, honoring the
-        // "ignore internal transactions" toggle.
         var analysisTransactions = ignoreInternalTransactions
             ? dateFilteredTransactions.Where(t => !t.IsInternal).ToList()
             : dateFilteredTransactions;
@@ -40,8 +33,6 @@ public class TransactionAnalysisService : ITransactionAnalysisService
             DateTo = dateTo == DateTime.MaxValue ? null : dateTo
         };
 
-        // Group the balance-source transactions by currency so the balance history
-        // for each currency includes internal transfers regardless of the toggle.
         var balanceTransactionsByCurrency = dateFilteredTransactions
             .GroupBy(t => t.Amount.Currency)
             .ToDictionary(g => g.Key, g => g.ToList());
@@ -72,8 +63,6 @@ public class TransactionAnalysisService : ITransactionAnalysisService
         CalculateBasicMetrics(analysis, transactions);
 
         analysis.MonthlyAnalyses = CalculateMonthlyAnalysis(transactions);
-        // Balance history uses the full (date-filtered) set so internal transfers are
-        // reflected in the account balance line even when they are excluded elsewhere.
         analysis.BalanceHistory = CalculateBalanceHistory(balanceTransactions);
         analysis.YearlyAnalyses = CalculateYearlyAnalysis(transactions);
 
