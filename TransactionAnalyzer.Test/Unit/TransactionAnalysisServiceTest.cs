@@ -384,6 +384,55 @@ public class TransactionAnalysisServiceTest
         Assert.Equal(70m, usdAnalysis.BalanceHistory.Last().Balance);
     }
 
+    [Fact]
+    public void AnalyzeTransactions_BalanceHistoryIncludesInternalTransfers_WhenIgnoreInternalIsTrue()
+    {
+        // Arrange - the most recent transaction is an internal transfer that lowers
+        // the real account balance. It must still appear on the balance line so the
+        // last point reflects the true current balance.
+        var transactions = new List<FibTransaction>
+        {
+            new()
+            {
+                Amount = new MonetaryValue(1000m, Currency.USD),
+                BalanceAfter = new MonetaryValue(1000m, Currency.USD),
+                TransactionType = "SALARY",
+                Date = new DateTime(2023, 1, 1),
+                Time = new TimeSpan(10, 0, 0)
+            },
+            new()
+            {
+                Amount = new MonetaryValue(-50m, Currency.USD),
+                BalanceAfter = new MonetaryValue(950m, Currency.USD),
+                TransactionType = "PAYMENT",
+                Date = new DateTime(2023, 1, 2),
+                Time = new TimeSpan(11, 0, 0)
+            },
+            new()
+            {
+                Amount = new MonetaryValue(-200m, Currency.USD),
+                BalanceAfter = new MonetaryValue(750m, Currency.USD),
+                TransactionType = "AUTO_SAVING_TRANSFER",
+                Date = new DateTime(2023, 1, 3),
+                Time = new TimeSpan(9, 0, 0)
+            }
+        };
+
+        // Act - internal transactions are excluded from analytics.
+        var result = _service.Analyze(transactions, true, DateTime.MinValue, DateTime.MaxValue);
+
+        // Assert
+        var usdAnalysis = result.CurrencyAnalyses[Currency.USD];
+
+        // Internal transfer is excluded from the analytics set.
+        Assert.Equal(2, usdAnalysis.TransactionCount);
+
+        // ...but the balance line still includes it, so the last point is the true
+        // current balance (750) rather than the stale pre-transfer balance (950).
+        Assert.Equal(3, usdAnalysis.BalanceHistory.Count);
+        Assert.Equal(750m, usdAnalysis.BalanceHistory.Last().Balance);
+    }
+
     #endregion
 
     #region Transaction Type Analysis Tests
