@@ -1,799 +1,476 @@
 ﻿@using System.Globalization
-@model TransactionAnalyzer.Models.TransactionAnalysisResult
 @using Transaction
+@model TransactionAnalyzer.Models.TransactionAnalysisResult
 @{
-    ViewData["Title"] = "Transaction Analysis Results";
+    ViewData["Title"] = "Statement Report";
+    var currencies = Model.CurrencyAnalyses.Keys.ToList();
+    var palette = new[] { "#2E9C84", "#253247", "#7FD1BE", "#F29A80", "#8C96A8", "#C9EFE6", "#155A4B", "#F6C2B2", "#465267", "#B9E6DC" };
 }
-<link rel="stylesheet" href="~/css/analysis-results.css" />
+@functions {
+    static string Amount(decimal value, Currency currency) =>
+        value.ToString(currency == Currency.IQD ? "N0" : "N2", CultureInfo.InvariantCulture);
 
-<!-- This view serves as the main dashboard displaying comprehensive transaction analysis.
-     It's organized into sections for each currency, with charts and statistics for each analysis type. -->
+    static string Signed(decimal value, Currency currency) =>
+        (value >= 0 ? "+" : "−") + Amount(Math.Abs(value), currency);
 
-<div class="container-fluid py-4">
-    <!-- Header Section with Overall Statistics -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="display-4 fw-bold text-primary">Analysis Results</h1>
-                    <p class="text-muted mb-0">Generated on @Model.AnalysisDate.ToString("MMMM dd, yyyy 'at' HH:mm") UTC</p>
-                    @if (Model.DateFrom.HasValue || Model.DateTo.HasValue)
+    static string Compact(decimal value)
+    {
+        var abs = Math.Abs(value);
+        var sign = value < 0 ? "−" : "+";
+        if (abs >= 1_000_000) return sign + (abs / 1_000_000).ToString("0.#", CultureInfo.InvariantCulture) + "M";
+        if (abs >= 1_000) return sign + (abs / 1_000).ToString("0.#", CultureInfo.InvariantCulture) + "K";
+        return sign + abs.ToString("0.##", CultureInfo.InvariantCulture);
+    }
+
+    static string SpendingSummary(decimal inflow, decimal outflow)
+    {
+        if (inflow <= 0) return "No money came in during this period";
+        var percent = outflow / inflow * 100m;
+        return percent <= 100m
+            ? $"You spent {percent.ToString("0", CultureInfo.InvariantCulture)}% of what came in"
+            : $"You spent {(percent - 100m).ToString("0", CultureInfo.InvariantCulture)}% more than came in";
+    }
+
+    static string TypeName(string type)
+    {
+        var words = type.Replace("_", " ").ToLowerInvariant();
+        return words.Length == 0 ? "Unknown" : char.ToUpperInvariant(words[0]) + words[1..];
+    }
+
+    static string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var letters = parts.Take(2).Select(p => char.ToUpperInvariant(p[0]));
+        var result = string.Concat(letters);
+        return result.Length == 0 ? "?" : result;
+    }
+}
+
+<section class="page-head has-tabs">
+    <div class="container">
+        <div class="report-title">
+            <h1 class="page-title">Statement Report</h1>
+            <span class="muted">Generated @Model.AnalysisDate.ToString("d MMM yyyy, HH:mm", CultureInfo.InvariantCulture) UTC</span>
+        </div>
+        <div class="report-meta">
+            <div class="meta-chips">
+                <span>
+                    @if (Model.DateFrom.HasValue && Model.DateTo.HasValue)
                     {
-                        <p class="text-muted small mb-0 mt-1">
-                            <i class="fas fa-calendar me-1"></i>
-                            <strong>Date Range:</strong>
-                            @if (Model.DateFrom.HasValue && Model.DateTo.HasValue)
-                            {
-                                <span>@Model.DateFrom.Value.ToString("MMM dd, yyyy") - @Model.DateTo.Value.ToString("MMM dd, yyyy")</span>
-                            }
-                            else if (Model.DateFrom.HasValue)
-                            {
-                                <span>From @Model.DateFrom.Value.ToString("MMM dd, yyyy")</span>
-                            }
-                            else if (Model.DateTo.HasValue)
-                            {
-                                <span>Until @Model.DateTo.Value.ToString("MMM dd, yyyy")</span>
-                            }
-                        </p>
+                        @($"{Model.DateFrom.Value:d MMM yyyy} – {Model.DateTo.Value:d MMM yyyy}")
+                    }
+                    else if (Model.DateFrom.HasValue)
+                    {
+                        @($"From {Model.DateFrom.Value:d MMM yyyy}")
+                    }
+                    else if (Model.DateTo.HasValue)
+                    {
+                        @($"Until {Model.DateTo.Value:d MMM yyyy}")
+                    }
+                    else
+                    {
+                        @("All dates")
+                    }
+                </span>
+                <span>@Model.TotalTransactionCount.ToString("N0") in file</span>
+                <span>@Model.FilteredTransactionCount.ToString("N0") analysed</span>
+                <span>@((Model.TotalTransactionCount - Model.FilteredTransactionCount).ToString("N0")) filtered out</span>
+                <span>@currencies.Count @(currencies.Count == 1 ? "currency" : "currencies")</span>
+            </div>
+            @if (currencies.Count > 0)
+            {
+                <div class="segmented" role="group" aria-label="Currency">
+                    @foreach (var c in currencies)
+                    {
+                        <button type="button" data-currency="@c" aria-pressed="@(c == currencies[0] ? "true" : "false")">@c</button>
                     }
                 </div>
-                <a asp-controller="Analysis" asp-action="Index" class="btn btn-outline-primary">
-                    <i class="fas fa-upload me-2"></i>Analyze New File
-                </a>
-            </div>
-
-            <!-- Overall Statistics Cards -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <div class="card stat-card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="fas fa-file-alt text-primary fs-1 mb-2"></i>
-                            <h4 class="fw-bold">@Model.TotalTransactionCount</h4>
-                            <p class="text-muted mb-0">Total Transactions</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="fas fa-filter text-success fs-1 mb-2"></i>
-                            <h4 class="fw-bold">@Model.FilteredTransactionCount</h4>
-                            <p class="text-muted mb-0">Analyzed Transactions</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="fas fa-coins text-warning fs-1 mb-2"></i>
-                            <h4 class="fw-bold">@Model.CurrencyAnalyses.Count</h4>
-                            <p class="text-muted mb-0">Currencies</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <i class="fas fa-ban text-danger fs-1 mb-2"></i>
-                            <h4 class="fw-bold">@(Model.TotalTransactionCount - Model.FilteredTransactionCount)</h4>
-                            <p class="text-muted mb-0">Filtered Out</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            }
         </div>
+        <nav class="tabs" role="tablist" aria-label="Report sections">
+            <button type="button" role="tab" data-panel="overview" aria-selected="true">Overview</button>
+            <button type="button" role="tab" data-panel="types" aria-selected="false">Types &amp; largest</button>
+            <button type="button" role="tab" data-panel="counterparties" aria-selected="false">Counterparties</button>
+            <button type="button" role="tab" data-panel="income" aria-selected="false">Income &amp; years</button>
+        </nav>
     </div>
+</section>
 
-    <!-- Currency-specific Analysis Sections -->
-    <!-- This loop creates a complete analysis dashboard for each currency found in the data -->
-    @foreach (var currencyAnalysis in Model.CurrencyAnalyses)
+<div class="container page-body">
+    @if (currencies.Count == 0)
     {
-        var currency = currencyAnalysis.Key;
-        var analysis = currencyAnalysis.Value;
-        var currencySymbol = currency.ToString();
-        var currencyCulture = new CultureInfo(currency.GetCultureCode());
+        <div class="card note-card">
+            No transactions matched your filters. <a asp-controller="Analysis" asp-action="Index">Try a different period</a>.
+        </div>
+    }
 
-        <div class="currency-section mb-5" id="currency_@currency">
-            <div class="row mb-4">
-                <div class="col-12">
-                    <h2 class="fw-bold text-primary mb-3">
-                        <i class="fas fa-money-bill-wave me-2"></i>
-                        @currency Analysis
-                    </h2>
-                </div>
-            </div>
+    @foreach (var (currency, analysis) in Model.CurrencyAnalyses)
+    {
+        var code = currency.ToString();
+        var months = analysis.MonthlyAnalyses.OrderBy(m => m.Year).ThenBy(m => m.Month).ToList();
+        var years = analysis.YearlyAnalyses.OrderBy(y => y.Year).ToList();
+        var balances = analysis.BalanceHistory;
+        var spentRatio = analysis.TotalInflow > 0 ? Math.Min(1m, analysis.TotalOutflow / analysis.TotalInflow) : 0m;
+        var ringDash = $"{Math.Round(spentRatio * 170m, 1).ToString(CultureInfo.InvariantCulture)} 170";
+        var typeDirection = analysis.LargestTransactionsByType
+            .Where(t => t.LargestTransaction != null)
+            .ToDictionary(t => t.TransactionType, t => t.LargestTransaction!.Amount.Amount >= 0);
+        var typesByCount = analysis.TransactionTypeAnalyses.OrderByDescending(t => t.Count).ToList();
+        var typeCountTotal = Math.Max(1, typesByCount.Sum(t => t.Count));
+        var typesByTotal = analysis.TransactionTypeAnalyses.OrderByDescending(t => t.TotalAmount).ToList();
+        var maxTypeTotal = typesByTotal.Count > 0 ? Math.Max(1m, typesByTotal[0].TotalAmount) : 1m;
+        var counterparties = analysis.TopCounterparties.OrderByDescending(c => c.NetAmount).ToList();
+        var typeFigures = analysis.CounterpartiesByTransactionType
+            .SelectMany(kv => kv.Value.Select(v => (Type: kv.Key, Item: v)))
+            .GroupBy(x => x.Item.Counterparty)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        var chartData = new
+        {
+            currency = code,
+            decimals = currency == Currency.IQD ? 0 : 2,
+            balance = new { labels = balances.Select(b => b.FormattedDate), data = balances.Select(b => b.Balance) },
+            monthly = new { labels = months.Select(m => m.MonthName), income = months.Select(m => m.Income), expenses = months.Select(m => m.Expenses) },
+            types = new { labels = typesByCount.Select(t => TypeName(t.TransactionType)), data = typesByCount.Select(t => t.Count), colors = typesByCount.Select((t, i) => palette[i % palette.Length]) },
+            averageIncome = analysis.AverageMonthlyIncome,
+            yearly = new { labels = years.Select(y => y.Year.ToString()), data = years.Select(y => y.NetIncome) }
+        };
 
-            <!-- Currency Navigation Bar -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body py-2">
-                            <nav class="currency-nav">
-                                <ul class="nav nav-pills justify-content-center flex-wrap">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" href="#dashboard_@currency" data-section="dashboard" data-currency="@currency">
-                                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#transaction-type-analysis_@currency" data-section="transaction-type-analysis" data-currency="@currency">
-                                            <i class="fas fa-chart-pie me-1"></i>Transaction Types
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#counterparties-sent-received_@currency" data-section="counterparties-sent-received" data-currency="@currency">
-                                            <i class="fas fa-exchange-alt me-1"></i>Sent vs Received
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#top-counterparties-summary_@currency" data-section="top-counterparties-summary" data-currency="@currency">
-                                            <i class="fas fa-users me-1"></i>Top Counterparties
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#largest-transactions-by-type_@currency" data-section="largest-transactions-by-type" data-currency="@currency">
-                                            <i class="fas fa-star me-1"></i>Largest Transactions
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#counterparties-by-transaction-type_@currency" data-section="counterparties-by-transaction-type" data-currency="@currency">
-                                            <i class="fas fa-network-wired me-1"></i>By Transaction Type
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#income-statistics_@currency" data-section="income-statistics" data-currency="@currency">
-                                            <i class="fas fa-chart-line me-1"></i>Income Statistics
-                                        </a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <section class="currency-panel" data-currency="@code" @(currency == currencies[0] ? null : "hidden") aria-label="@code report">
+            <script type="application/json" class="chart-data">@Json.Serialize(chartData)</script>
 
-            <!-- Dashboard Section - REDESIGNED -->
-            <div id="dashboard_@currency" class="currency-content-section">
-                <!-- Hero Financial Summary -->
-                <div class="dashboard-hero mb-5">
-                    <div class="card border-0 shadow-lg overflow-hidden">
-                        <div class="card-body p-0">
-                            <div class="row g-0">
-                                <!-- Net Balance Hero -->
-                                <div class="col-lg-5 hero-net-section d-flex align-items-center justify-content-center p-5 @(analysis.NetAmount >= 0 ? "bg-success-gradient" : "bg-danger-gradient")">
-                                    <div class="text-center text-white">
-                                        <div class="hero-icon mb-3">
-                                            <i class="fas @(analysis.NetAmount >= 0 ? "fa-trending-up" : "fa-trending-down") fa-3x opacity-75"></i>
-                                        </div>
-                                        <span class="hero-label text-uppercase small fw-semibold opacity-75 d-block mb-2">Net Balance</span>
-                                        <h2 class="hero-value display-4 fw-bold mb-2">
-                                            @analysis.NetAmount.ToString("C", currencyCulture)
-                                        </h2>
-                                        <p class="hero-subtitle mb-0 opacity-75">
-                                            @(analysis.NetAmount >= 0 ? "You're in the positive!" : "Expenses exceeded income")
-                                        </p>
-                                    </div>
-                                </div>
-                                <!-- Stats Grid -->
-                                <div class="col-lg-7 p-4">
-                                    <div class="row g-4 h-100">
-                                        <div class="col-6">
-                                            <div class="mini-stat-card h-100 rounded-4 p-4 border border-success border-opacity-25 bg-success bg-opacity-5">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <div class="stat-icon-wrapper rounded-circle bg-success bg-opacity-10 p-2 me-3">
-                                                        <i class="fas fa-arrow-down text-success"></i>
-                                                    </div>
-                                                    <span class="text-muted small fw-semibold text-uppercase">Total Inflow</span>
-                                                </div>
-                                                <div class="mini-stat-value h4 fw-bold text-success mb-0">@analysis.TotalInflow.ToString("C", currencyCulture)</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="mini-stat-card h-100 rounded-4 p-4 border border-danger border-opacity-25 bg-danger bg-opacity-5">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <div class="stat-icon-wrapper rounded-circle bg-danger bg-opacity-10 p-2 me-3">
-                                                        <i class="fas fa-arrow-up text-danger"></i>
-                                                    </div>
-                                                    <span class="text-muted small fw-semibold text-uppercase">Total Outflow</span>
-                                                </div>
-                                                <div class="mini-stat-value h4 fw-bold text-danger mb-0">@analysis.TotalOutflow.ToString("C", currencyCulture)</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="mini-stat-card h-100 rounded-4 p-4 border border-warning border-opacity-25 bg-warning bg-opacity-5">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <div class="stat-icon-wrapper rounded-circle bg-warning bg-opacity-10 p-2 me-3">
-                                                        <i class="fas fa-receipt text-warning"></i>
-                                                    </div>
-                                                    <span class="text-muted small fw-semibold text-uppercase">Total Fees</span>
-                                                </div>
-                                                <div class="mini-stat-value h4 fw-bold text-warning mb-0">@analysis.TotalFees.ToString("C", currencyCulture)</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="mini-stat-card h-100 rounded-4 p-4 border border-info border-opacity-25 bg-info bg-opacity-5">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <div class="stat-icon-wrapper rounded-circle bg-info bg-opacity-10 p-2 me-3">
-                                                        <i class="fas fa-exchange-alt text-info"></i>
-                                                    </div>
-                                                    <span class="text-muted small fw-semibold text-uppercase">Transactions</span>
-                                                </div>
-                                                <div class="mini-stat-value h4 fw-bold text-info mb-0">@analysis.TransactionCount</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+            @* ---------- Overview ---------- *@
+            <div class="report-panel" data-panel="overview" role="tabpanel">
+                <div class="row">
+                    <div class="card card-raised grow-3 net-card">
+                        <div class="net-head">
+                            <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Money out is @((spentRatio * 100).ToString("0"))% of money in">
+                                <circle cx="32" cy="32" r="27" fill="none" stroke="#EEF0F4" stroke-width="6" />
+                                <circle cx="32" cy="32" r="27" fill="none" stroke="#3FB39A" stroke-width="6" stroke-linecap="round" stroke-dasharray="@ringDash" transform="rotate(-90 32 32)" />
+                                <path d="M24 33l5 5 11-12" stroke="#5B6678" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <div>
+                                <h2 class="card-title">Net balance</h2>
+                                <span class="muted">@SpendingSummary(analysis.TotalInflow, analysis.TotalOutflow)</span>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Account Balance Tracking Chart -->
-                <div class="dashboard-chart-section mb-5">
-                    <div class="card chart-card-full border-0 shadow-sm">
-                        <div class="card-header bg-transparent border-0 py-4">
-                            <div class="d-flex align-items-center">
-                                <div class="chart-icon-wrapper bg-primary bg-opacity-10 rounded-3 p-3 me-3">
-                                    <i class="fas fa-chart-area text-primary fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="fw-bold mb-1">Account Balance Tracking</h5>
-                                    <p class="text-muted small mb-0">See how your balance has changed over time</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="chart-container-full">
-                                <canvas id="balanceChart_@currency"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Monthly Cash Flow Analysis Chart -->
-                <div class="dashboard-chart-section mb-5">
-                    <div class="card chart-card-full border-0 shadow-sm">
-                        <div class="card-header bg-transparent border-0 py-4">
-                            <div class="d-flex align-items-center">
-                                <div class="chart-icon-wrapper bg-success bg-opacity-10 rounded-3 p-3 me-3">
-                                    <i class="fas fa-chart-bar text-success fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="fw-bold mb-1">Monthly Cash Flow</h5>
-                                    <p class="text-muted small mb-0">Compare your income and expenses month by month</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="chart-container-full">
-                                <canvas id="cashFlowChart_@currency"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Transaction Types Analysis -->
-                <div class="dashboard-chart-section mb-5">
-                    <div class="card chart-card-full border-0 shadow-sm">
-                        <div class="card-header bg-transparent border-0 py-4">
-                            <div class="d-flex align-items-center">
-                                <div class="chart-icon-wrapper bg-warning bg-opacity-10 rounded-3 p-3 me-3">
-                                    <i class="fas fa-chart-pie text-warning fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="fw-bold mb-1">Transaction Types Distribution</h5>
-                                    <p class="text-muted small mb-0">Breakdown of your transactions by category</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="chart-container-doughnut">
-                                <canvas id="transactionTypesChart_@currency" class="transaction-types-canvas"></canvas>
-                            </div>
-                            <!-- Custom legend will be inserted here by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Yearly Analysis Chart -->
-                <div class="dashboard-chart-section mb-4">
-                    <div class="card chart-card-full border-0 shadow-sm">
-                        <div class="card-header bg-transparent border-0 py-4">
-                            <div class="d-flex align-items-center">
-                                <div class="chart-icon-wrapper bg-info bg-opacity-10 rounded-3 p-3 me-3">
-                                    <i class="fas fa-calendar-alt text-info fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="fw-bold mb-1">Yearly Analysis</h5>
-                                    <p class="text-muted small mb-0">Your net income performance by year</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="chart-container-full">
-                                <canvas id="yearlyChart_@currency"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Transaction Type Analysis Section -->
-            <div id="transaction-type-analysis_@currency" class="currency-content-section" style="display: none;">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="card table-card border-0 shadow-sm">
-                            <div class="card-header bg-white border-0">
-                                <h5 class="fw-bold mb-0">Transaction Type Analysis</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Type</th>
-                                                <th>Count</th>
-                                                <th>Average</th>
-                                                <th>Largest</th>
-                                                <th>Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var typeAnalysis in analysis.TransactionTypeAnalyses.OrderByDescending(t => t.TotalAmount))
-                                            {
-                                                <tr>
-                                                    <td>@typeAnalysis.TransactionType.Replace("_", " ")</td>
-                                                    <td><span class="badge bg-primary">@typeAnalysis.Count</span></td>
-                                                    <td>@typeAnalysis.AverageAmount.ToString("C", currencyCulture)</td>
-                                                    <td>@typeAnalysis.LargestAmount.ToString("C", currencyCulture)</td>
-                                                    <td>@typeAnalysis.TotalAmount.ToString("C", currencyCulture)</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Counterparties - Sent vs Received Section -->
-            <div id="counterparties-sent-received_@currency" class="currency-content-section" style="display: none;">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="card table-card border-0 shadow-sm">
-                            <div class="card-header bg-white border-0">
-                                <h5 class="fw-bold mb-0">
-                                    <i class="fas fa-exchange-alt text-info me-2"></i>
-                                    Counterparties - Sent vs Received
-                                </h5>
-                                <p class="text-muted small mb-0">Money flow analysis with counterparties (click headers to sort)</p>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0" id="counterpartiesTable_@currency">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th class="sortable" data-sort="counterparty" style="cursor: pointer;">
-                                                    Counterparty <i class="fas fa-sort ms-1"></i>
-                                                </th>
-                                                <th class="text-danger sortable" data-sort="sent" style="cursor: pointer;">
-                                                    Sent <i class="fas fa-sort ms-1"></i>
-                                                </th>
-                                                <th class="text-success sortable" data-sort="received" style="cursor: pointer;">
-                                                    Received <i class="fas fa-sort ms-1"></i>
-                                                </th>
-                                                <th class="sortable active-sort" data-sort="net" style="cursor: pointer;">
-                                                    Net Balance <i class="fas fa-sort-down ms-1"></i>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="counterpartiesTableBody_@currency">
-                                            @{
-                                                // Sort by net amount descending initially (highest net balance first)
-                                                var sortedCounterparties = analysis.TopCounterparties.OrderByDescending(c => c.NetAmount).ToList();
-                                                var counterpartiesToShow = sortedCounterparties.Take(20).ToList();
-                                                var hasMoreCounterparties = sortedCounterparties.Count() > 20;
-                                            }
-                                            @foreach (var counterparty in counterpartiesToShow)
-                                            {
-                                                <tr class="counterparty-row-visible">
-                                                    <td data-value="@counterparty.Counterparty.ToLower()">
-                                                        <strong>@counterparty.Counterparty</strong>
-                                                        <br>
-                                                        <small class="text-muted">@counterparty.TransactionCount transactions</small>
-                                                    </td>
-                                                    <td class="text-danger" data-value="@counterparty.AmountSent">
-                                                        <strong>@counterparty.AmountSent.ToString("C", currencyCulture)</strong>
-                                                    </td>
-                                                    <td class="text-success" data-value="@counterparty.AmountReceived">
-                                                        <strong>@counterparty.AmountReceived.ToString("C", currencyCulture)</strong>
-                                                    </td>
-                                                    <td data-value="@counterparty.NetAmount">
-                                                        <strong class="@(counterparty.NetAmount >= 0 ? "text-success" : "text-danger")">
-                                                            @counterparty.NetAmount.ToString("C", currencyCulture)
-                                                        </strong>
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            @(counterparty.NetAmount >= 0 ? "You received more" : "You sent more")
-                                                        </small>
-                                                    </td>
-                                                </tr>
-                                            }
-                                            @if (hasMoreCounterparties)
-                                            {
-                                                @foreach (var counterparty in sortedCounterparties.Skip(20))
-                                                {
-                                                    <tr class="counterparty-row-hidden" style="display: none;">
-                                                        <td data-value="@counterparty.Counterparty.ToLower()">
-                                                            <strong>@counterparty.Counterparty</strong>
-                                                            <br>
-                                                            <small class="text-muted">@counterparty.TransactionCount transactions</small>
-                                                        </td>
-                                                        <td class="text-danger" data-value="@counterparty.AmountSent">
-                                                            <strong>@counterparty.AmountSent.ToString("C", currencyCulture)</strong>
-                                                        </td>
-                                                        <td class="text-success" data-value="@counterparty.AmountReceived">
-                                                            <strong>@counterparty.AmountReceived.ToString("C", currencyCulture)</strong>
-                                                        </td>
-                                                        <td data-value="@counterparty.NetAmount">
-                                                            <strong class="@(counterparty.NetAmount >= 0 ? "text-success" : "text-danger")">
-                                                                @counterparty.NetAmount.ToString("C", currencyCulture)
-                                                            </strong>
-                                                            <br>
-                                                            <small class="text-muted">
-                                                                @(counterparty.NetAmount >= 0 ? "You received more" : "You sent more")
-                                                            </small>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            @if (hasMoreCounterparties)
+                        <div class="net-figure">
+                            <span class="num">@Signed(analysis.NetAmount, currency)<small>@code</small></span>
+                            @if (balances.Count > 0)
                             {
-                                <div class="card-footer bg-light border-0 text-center">
-                                    <button class="btn btn-outline-primary btn-sm" id="toggleCounterparties_@currency" onclick="toggleCounterpartiesView('@currency')">
-                                        <i class="fas fa-chevron-down me-1"></i>
-                                        Show All (@sortedCounterparties.Count() total)
-                                    </button>
-                                </div>
+                                <span class="muted">balance @Amount(balances[0].Balance, currency) → @Amount(balances[^1].Balance, currency) @code</span>
                             }
                         </div>
                     </div>
+                    <div class="grow-2 kpi-grid">
+                        <div class="card card-raised kpi wide">
+                            <span class="icon-chip in"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v14m0 0l-6-6m6 6l6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+                            <div><span class="muted">Total inflow</span><strong class="amount-in num">@Signed(analysis.TotalInflow, currency)</strong></div>
+                        </div>
+                        <div class="card card-raised kpi wide">
+                            <span class="icon-chip out"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20V6m0 0l-6 6m6-6l6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+                            <div><span class="muted">Total outflow</span><strong class="amount-out num">@Signed(-analysis.TotalOutflow, currency)</strong></div>
+                        </div>
+                        <div class="card kpi"><div><span class="muted">Total fees</span><strong class="num">@Amount(analysis.TotalFees, currency)</strong></div></div>
+                        <div class="card kpi"><div><span class="muted">Transactions</span><strong class="num">@analysis.TransactionCount.ToString("N0")</strong></div></div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Top Counterparties Summary Section -->
-            <div id="top-counterparties-summary_@currency" class="currency-content-section" style="display: none;">
-                <div class="row g-4 mb-4">
-                    <div class="col-12">
-                        <div class="card table-card border-0 shadow-sm">
-                            <div class="card-header bg-white border-0">
-                                <h5 class="fw-bold mb-0">Top Counterparties Summary</h5>
-                                <p class="text-muted small mb-0">Overall transaction summary with all counterparties</p>
+                <div class="card actions" aria-label="Report actions">
+                    <button type="button" class="action" data-action="print">
+                        <span class="icon-chip"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2h8l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2zm7 1.5V8h4.5L13 3.5zM8 12v2h8v-2H8zm0 4v2h6v-2H8z" /></svg></span>
+                        Print / save PDF
+                    </button>
+                    <a class="action" asp-controller="Analysis" asp-action="Index">
+                        <span class="icon-chip"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm-2 8h14v10H5V10zm2 2v3h3v-3H7z" /></svg></span>
+                        Change dates
+                    </a>
+                    <button type="button" class="action" data-goto="counterparties">
+                        <span class="icon-chip"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 11a4 4 0 100-8 4 4 0 000 8zm7 0a3 3 0 100-6 3 3 0 000 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6H2zm15.5 0c0-2-.8-3.8-2.1-5.1.5-.1 1-.1 1.6-.1 3 0 5 2.2 5 5.2h-4.5z" /></svg></span>
+                        Counterparties
+                    </button>
+                    <button type="button" class="action" data-goto="income">
+                        <span class="icon-chip"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 20V4h2v14h16v2H3zm4-4l4-5 3 3 5-7 1.6 1.2L14.3 17 11 13.8 8.6 17H7z" /></svg></span>
+                        Income stats
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <div><h2 class="card-title">Account balance</h2><span class="card-sub">Balance after each transaction</span></div>
+                        @if (balances.Count > 0)
+                        {
+                            <span class="muted num">Low @Amount(balances.Min(b => b.Balance), currency) · High @Amount(balances.Max(b => b.Balance), currency)</span>
+                        }
+                    </div>
+                    <div class="chart-box"><canvas data-chart="balance" aria-label="Account balance over time" role="img"></canvas></div>
+                </div>
+
+                <div class="row">
+                    <div class="card grow-3">
+                        <div class="card-head">
+                            <div><h2 class="card-title">Monthly cash flow</h2><span class="card-sub">Income and expenses, month by month</span></div>
+                            <span class="legend"><span><i class="dot in"></i>In</span><span><i class="dot out"></i>Out</span></span>
+                        </div>
+                        <div class="chart-box"><canvas data-chart="cashflow" aria-label="Monthly income and expenses" role="img"></canvas></div>
+                    </div>
+                    <div class="card grow-2">
+                        <div class="card-head">
+                            <h2 class="card-title">Transaction types</h2>
+                            <button type="button" class="link-btn" data-goto="types">Details</button>
+                        </div>
+                        <div class="types-chart">
+                            <div class="donut-box">
+                                <canvas data-chart="types" aria-label="Share of transactions by type" role="img"></canvas>
+                                <div class="donut-center"><strong class="num">@analysis.TransactionCount.ToString("N0")</strong><span class="muted">transactions</span></div>
                             </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Counterparty</th>
-                                                <th>Total Transactions</th>
-                                                <th>Total Amount</th>
-                                                <th>Average per Transaction</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var counterparty in analysis.TopCounterparties.OrderByDescending(c => c.TotalAmount).Take(13))
-                                            {
-                                                <tr>
-                                                    <td>@counterparty.Counterparty</td>
-                                                    <td><span class="badge bg-info">@counterparty.TransactionCount</span></td>
-                                                    <td>@counterparty.TotalAmount.ToString("C", currencyCulture)</td>
-                                                    <td>@counterparty.AverageAmount.ToString("C", currencyCulture)</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                            <ul class="type-legend">
+                                @for (var i = 0; i < typesByCount.Count; i++)
+                                {
+                                    var t = typesByCount[i];
+                                    <li><i class="dot" style="background:@palette[i % palette.Length]"></i><span>@TypeName(t.TransactionType)</span><strong>@((t.Count * 100.0 / typeCountTotal).ToString("0"))%</strong></li>
+                                }
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Largest Transactions By Type Section -->
-            @if (analysis.LargestTransactionsByType.Any())
-            {
-                <div id="largest-transactions-by-type_@currency" class="currency-content-section" style="display: none;">
-                    <div class="row g-4 mb-4">
-                        <div class="col-12">
-                            <div class="card table-card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="fw-bold mb-0">
-                                        <i class="fas fa-star text-warning me-2"></i>
-                                        Largest Transactions By Type
-                                    </h5>
-                                    <p class="text-muted small mb-0">The biggest transaction in each category</p>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover mb-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Counterparty</th>
-                                                    <th>Date</th>
-                                                    <th>Status</th>
-                                                    <th>Note</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var largestType in analysis.LargestTransactionsByType)
-                                                {
-                                                    <tr>
-                                                        <td>
-                                                            <span class="badge bg-secondary">@largestType.TransactionType.Replace("_", " ")</span>
-                                                        </td>
-                                                        <td>
-                                                            <strong class="@(largestType.LargestAmount >= 0 ? "text-success" : "text-danger")">
-                                                                @largestType.LargestAmount.ToString("C", currencyCulture)
-                                                            </strong>
-                                                        </td>
-                                                        @if (largestType.LargestTransaction != null)
-                                                        {
-                                                            <td>@(string.IsNullOrEmpty(largestType.LargestTransaction.Counterparty) ? "-" : largestType.LargestTransaction.Counterparty)</td>
-                                                            <td>@largestType.LargestTransaction.Date.ToString("MMM dd, yyyy")</td>
-                                                            <td>
-                                                                <span class="badge @(largestType.LargestTransaction.Status == "COMPLETED" ? "bg-success" : "bg-warning")">
-                                                                    @largestType.LargestTransaction.Status
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <small class="text-muted">
-                                                                    @(string.IsNullOrEmpty(largestType.LargestTransaction.Note) ? "-" :
-                                                                                                                        (largestType.LargestTransaction.Note.Length > 30 ?
-                                                                                                                        largestType.LargestTransaction.Note.Substring(0, 30) + "..." :
-                                                                                                                        largestType.LargestTransaction.Note))
-                                                                </small>
-                                                            </td>
-                                                        }
-                                                        else
-                                                        {
-                                                            <td colspan="4" class="text-muted">Transaction details not available</td>
-                                                        }
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
+            @* ---------- Types & largest ---------- *@
+            <div class="report-panel" data-panel="types" role="tabpanel" hidden>
+                <div class="card card-flush">
+                    <div class="card-head panel-pad">
+                        <div><h2 class="card-title">Transaction types</h2><span class="card-sub">Sorted by total amount · @code</span></div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table types-table">
+                            <thead>
+                                <tr><th scope="col">Type</th><th scope="col" class="r">Count</th><th scope="col" class="r">Average</th><th scope="col" class="r">Largest</th><th scope="col">Total</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var t in typesByTotal)
+                                {
+                                    bool? isIn = typeDirection.TryGetValue(t.TransactionType, out var d) ? d : null;
+                                    var tone = isIn == true ? "in" : isIn == false ? "out" : "";
+                                    var width = Math.Max(2m, Math.Round(t.TotalAmount / maxTypeTotal * 100m)).ToString(CultureInfo.InvariantCulture);
+                                    <tr>
+                                        <td><span class="type-cell"><span class="icon-chip sm @tone" aria-hidden="true">@(TypeName(t.TransactionType)[0])</span>@TypeName(t.TransactionType)</span></td>
+                                        <td class="r"><span class="badge">@t.Count.ToString("N0")</span></td>
+                                        <td class="r num">@Amount(t.AverageAmount, currency)</td>
+                                        <td class="r num">@Amount(t.LargestAmount, currency)</td>
+                                        <td><div class="bar-cell"><div class="bar-track"><div class="bar-fill @tone" style="width:@(width)%"></div></div><strong class="num amount-@(tone == "" ? "none" : tone)">@Amount(t.TotalAmount, currency)</strong></div></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                @if (analysis.LargestTransactionsByType.Any(t => t.LargestTransaction != null))
+                {
+                    <div class="panel-heading">
+                        <h2 class="card-title">Largest transaction in each type</h2>
+                        <span class="card-sub">The single biggest payment or receipt per category</span>
+                    </div>
+                    <div class="grid" style="--min: 360px">
+                        @foreach (var t in analysis.LargestTransactionsByType.Where(t => t.LargestTransaction != null))
+                        {
+                            var tx = t.LargestTransaction!;
+                            var isIn = tx.Amount.Amount >= 0;
+                            <article class="card largest">
+                                <div class="largest-head">
+                                    <span class="icon-chip @(isIn ? "in" : "out")">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="@(isIn ? "M12 4v14m0 0l-6-6m6 6l6-6" : "M12 20V6m0 0l-6 6m6-6l6 6")" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                                    </span>
+                                    <div class="grow"><strong>@TypeName(t.TransactionType)</strong><span class="muted">@(string.IsNullOrEmpty(tx.Counterparty) ? "No counterparty" : tx.Counterparty)</span></div>
+                                    <div class="largest-amount">
+                                        <strong class="num amount-@(isIn ? "in" : "out")">@Signed(tx.Amount.Amount, currency)</strong>
+                                        @if (tx.Fee.Amount > 0)
+                                        {
+                                            <span class="muted">fee @Amount(tx.Fee.Amount, currency)</span>
+                                        }
                                     </div>
                                 </div>
+                                <dl class="largest-details">
+                                    <div><dt>Date</dt><dd>@tx.Date.ToString("d MMM yyyy", CultureInfo.InvariantCulture)</dd></div>
+                                    <div><dt>Time</dt><dd>@tx.Time.ToString(@"hh\:mm")</dd></div>
+                                    <div><dt>Status</dt><dd><span class="badge @(tx.Status == "COMPLETED" ? "ok" : "warn")">@TypeName(tx.Status)</span></dd></div>
+                                    @if (!string.IsNullOrEmpty(tx.Note))
+                                    {
+                                        <div class="full"><dt>Note</dt><dd>@tx.Note</dd></div>
+                                    }
+                                    @if (tx.TransactionId.HasValue)
+                                    {
+                                        <div class="full"><dt>Transaction ID</dt><dd><code>@tx.TransactionId.Value</code></dd></div>
+                                    }
+                                </dl>
+                            </article>
+                        }
+                    </div>
+                }
+            </div>
 
-                                <!-- Individual Largest Transactions with Full Details -->
-                                @if (analysis.TransactionTypeAnalyses.Any(t => t.LargestTransaction != null))
+            @* ---------- Counterparties ---------- *@
+            <div class="report-panel" data-panel="counterparties" role="tabpanel" hidden>
+                @if (counterparties.Count > 0)
+                {
+                    var source = counterparties[0];
+                    var destination = counterparties[^1];
+                    <div class="grid">
+                        <div class="card kpi">
+                            <span class="icon-chip"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 11a4 4 0 100-8 4 4 0 000 8zm7 0a3 3 0 100-6 3 3 0 000 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6H2zm15.5 0c0-2-.8-3.8-2.1-5.1.5-.1 1-.1 1.6-.1 3 0 5 2.2 5 5.2h-4.5z" /></svg></span>
+                            <div><span class="muted">Counterparties</span><strong class="num">@counterparties.Count.ToString("N0")</strong></div>
+                        </div>
+                        @if (source.NetAmount > 0)
+                        {
+                            <div class="card kpi">
+                                <span class="icon-chip in"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v14m0 0l-6-6m6 6l6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+                                <div><span class="muted">Biggest source</span><strong class="ellipsis">@source.Counterparty · <span class="amount-in num">@Compact(source.NetAmount)</span></strong></div>
+                            </div>
+                        }
+                        @if (destination.NetAmount < 0)
+                        {
+                            <div class="card kpi">
+                                <span class="icon-chip out"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20V6m0 0l-6 6m6-6l6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+                                <div><span class="muted">Biggest destination</span><strong class="ellipsis">@destination.Counterparty · <span class="amount-out num">@Compact(destination.NetAmount)</span></strong></div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="card cp-card" data-counterparties>
+                    <div class="card-head">
+                        <div><h2 class="card-title">Sent vs received</h2><span class="card-sub">Money flow with each counterparty</span></div>
+                        <div class="search">
+                            <label class="visually-hidden" for="cpSearch_@code">Search counterparties</label>
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.8" /><path d="M12.5 12.5L16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+                            <input id="cpSearch_@code" type="search" class="input" placeholder="Search by name" data-cp-search />
+                        </div>
+                    </div>
+                    <div class="cp-controls">
+                        <div class="chips" role="group" aria-label="Transaction type">
+                            <button type="button" class="chip-btn outline" data-cp-type="" aria-pressed="true">All types</button>
+                            @foreach (var type in analysis.CounterpartiesByTransactionType.Keys.OrderBy(k => k))
+                            {
+                                <button type="button" class="chip-btn outline" data-cp-type="@type" aria-pressed="false">@TypeName(type)</button>
+                            }
+                        </div>
+                        <div class="segmented" role="group" aria-label="Sort by">
+                            <button type="button" data-cp-sort="net" aria-pressed="true">Net</button>
+                            <button type="button" data-cp-sort="sent" aria-pressed="false">Sent</button>
+                            <button type="button" data-cp-sort="received" aria-pressed="false">Received</button>
+                            <button type="button" data-cp-sort="total" aria-pressed="false">Total</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <div class="cp-list" role="table" aria-label="Counterparties">
+                            <div class="cp-row cp-header" role="row">
+                                <span role="columnheader">Counterparty</span><span role="columnheader" class="r">Sent</span><span role="columnheader" class="r">Received</span><span role="columnheader" class="r">Net balance</span>
+                            </div>
+                            <div data-cp-body>
+                                @foreach (var cp in counterparties)
                                 {
-                                    <div class="card-body border-top">
-                                        <h6 class="fw-bold mb-3">
-                                            <i class="fas fa-medal text-gold me-2"></i>
-                                            Significant Transaction Details
-                                        </h6>
-                                        <div class="row g-0">
-                                            @foreach (var typeAnalysis in analysis.TransactionTypeAnalyses.Where(t => t.LargestTransaction != null))
-                                            {
-                                                var transaction = typeAnalysis.LargestTransaction!;
-                                                <div class="col-lg-6 p-0">
-                                                    <div class="border-end border-bottom p-4">
-                                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                                            <div>
-                                                                <h6 class="fw-bold mb-1">@typeAnalysis.TransactionType.Replace("_", " ")</h6>
-                                                                <span class="badge @(transaction.Status == "COMPLETED" ? "bg-success" : "bg-warning")">
-                                                                    @transaction.Status
-                                                                </span>
-                                                            </div>
-                                                            <div class="text-end">
-                                                                <div class="h5 fw-bold mb-0 @(transaction.Amount.Amount >= 0 ? "text-success" : "text-danger")">
-                                                                    @transaction.Amount.Amount.ToString("C", currencyCulture)
-                                                                </div>
-                                                                @if (transaction.Fee.Amount > 0)
-                                                                {
-                                                                    <small class="text-muted">Fee: @transaction.Fee.Amount.ToString("C", currencyCulture)</small>
-                                                                }
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="row g-2 small">
-                                                            <div class="col-6">
-                                                                <strong>Date:</strong><br>
-                                                                <span class="text-muted">@transaction.Date.ToString("MMM dd, yyyy")</span>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <strong>Time:</strong><br>
-                                                                <span class="text-muted">@transaction.Time.ToString(@"hh\:mm")</span>
-                                                            </div>
-                                                            @if (!string.IsNullOrEmpty(transaction.Counterparty))
-                                                            {
-                                                                <div class="col-12 mt-2">
-                                                                    <strong>Counterparty:</strong><br>
-                                                                    <span class="text-muted">@transaction.Counterparty</span>
-                                                                </div>
-                                                            }
-                                                            @if (transaction.TransactionId.HasValue)
-                                                            {
-                                                                <div class="col-12 mt-2">
-                                                                    <strong>Transaction ID:</strong><br>
-                                                                    <code class="small">@transaction.TransactionId.Value</code>
-                                                                </div>
-                                                            }
-                                                            @if (!string.IsNullOrEmpty(transaction.Note))
-                                                            {
-                                                                <div class="col-12 mt-2">
-                                                                    <strong>Note:</strong><br>
-                                                                    <span class="text-muted">@transaction.Note</span>
-                                                                </div>
-                                                            }
-                                                            <div class="col-12 mt-2">
-                                                                <strong>Balance After:</strong><br>
-                                                                <span class="text-info">@transaction.BalanceAfter.Amount.ToString("C", currencyCulture)</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            }
+                                    var figures = typeFigures.TryGetValue(cp.Counterparty, out var f) ? f : new();
+                                    var isIn = cp.NetAmount >= 0;
+                                    <div class="cp-row" role="row"
+                                         data-name="@cp.Counterparty.ToLowerInvariant()"
+                                         data-types="|@string.Join("|", figures.Select(x => x.Type))|"
+                                         data-net="@cp.NetAmount.ToString(CultureInfo.InvariantCulture)"
+                                         data-sent="@cp.AmountSent.ToString(CultureInfo.InvariantCulture)"
+                                         data-received="@cp.AmountReceived.ToString(CultureInfo.InvariantCulture)"
+                                         data-total="@cp.TotalAmount.ToString(CultureInfo.InvariantCulture)">
+                                        <div class="cp-who" role="cell">
+                                            <span class="icon-chip sm initials" aria-hidden="true">@Initials(cp.Counterparty)</span>
+                                            <div class="grow">
+                                                <span class="title">@cp.Counterparty</span>
+                                                <span class="sub">@cp.TransactionCount.ToString("N0") transactions · avg @Amount(cp.AverageAmount, currency)</span>
+                                                @foreach (var fig in figures)
+                                                {
+                                                    <span class="sub type-figure" data-type="@fig.Type" hidden>@TypeName(fig.Type): @fig.Item.Count× · @Amount(fig.Item.TotalAmount, currency)</span>
+                                                }
+                                            </div>
                                         </div>
+                                        <span class="r num muted-ink" role="cell">@(cp.AmountSent == 0 ? "—" : Amount(cp.AmountSent, currency))</span>
+                                        <span class="r num muted-ink" role="cell">@(cp.AmountReceived == 0 ? "—" : Amount(cp.AmountReceived, currency))</span>
+                                        <span class="r cp-net" role="cell"><strong class="num amount-@(isIn ? "in" : "out")">@Signed(cp.NetAmount, currency)</strong><span class="sub">@(isIn ? "you received more" : "you sent more")</span></span>
                                     </div>
                                 }
                             </div>
                         </div>
                     </div>
+                    <p class="cp-empty muted" data-cp-empty hidden>No counterparties match.</p>
+                    @if (counterparties.Count > 20)
+                    {
+                        <button type="button" class="btn btn-mint btn-lg cp-more" data-cp-more data-total="@counterparties.Count">Show all @counterparties.Count counterparties</button>
+                    }
                 </div>
-            }
+            </div>
 
-            <!-- Counterparties By Transaction Type Section -->
-            @if (analysis.CounterpartiesByTransactionType.Any())
-            {
-                <div id="counterparties-by-transaction-type_@currency" class="currency-content-section" style="display: none;">
-                    <div class="row g-4 mb-4">
-                        <div class="col-12">
-                            <div class="card table-card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="fw-bold mb-0">
-                                        <i class="fas fa-network-wired text-info me-2"></i>
-                                        Counterparties by Transaction Type
-                                    </h5>
-                                    <p class="text-muted small mb-0">Transaction patterns between you and counterparties</p>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        @foreach (var typeGroup in analysis.CounterpartiesByTransactionType)
-                                        {
-                                            <div class="col-lg-6 mb-4">
-                                                <div class="border rounded p-3 bg-light">
-                                                    <h6 class="fw-bold text-primary mb-3">
-                                                        <i class="fas fa-tag me-1"></i>
-                                                        @typeGroup.Key.Replace("_", " ")
-                                                    </h6>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm table-borderless mb-0">
-                                                            <thead>
-                                                                <tr class="border-bottom">
-                                                                    <th class="small">Counterparty</th>
-                                                                    <th class="small text-center">Count</th>
-                                                                    <th class="small text-end">Total</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                @foreach (var counterparty in typeGroup.Value)
-                                                                {
-                                                                    <tr>
-                                                                        <td class="small">
-                                                                            @(counterparty.Counterparty)
-                                                                        </td>
-                                                                        <td class="small text-center">
-                                                                            <span class="badge bg-info badge-sm">@counterparty.Count</span>
-                                                                        </td>
-                                                                        <td class="small text-end">
-                                                                            @counterparty.TotalAmount.ToString("C0", currencyCulture)
-                                                                        </td>
-                                                                    </tr>
-                                                                }
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
+            @* ---------- Income & years ---------- *@
+            <div class="report-panel" data-panel="income" role="tabpanel" hidden>
+                <div class="grid" style="--min: 240px">
+                    <div class="card stat">
+                        <span class="icon-chip"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 20V4h2v14h16v2H3zm4-4l4-5 3 3 5-7 1.6 1.2L14.3 17 11 13.8 8.6 17H7z" /></svg></span>
+                        <span class="muted">Average per month</span><strong class="num">@Amount(analysis.AverageMonthlyIncome, currency)</strong><span class="muted">@code</span>
+                    </div>
+                    <div class="card stat">
+                        <span class="icon-chip in"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4l7 7-1.4 1.4L13 7.8V20h-2V7.8l-4.6 4.6L5 11l7-7z" /></svg></span>
+                        <span class="muted">Best month</span><strong class="num">@Amount(analysis.MaxMonthlyIncome, currency)</strong><span class="muted">@(analysis.BestIncomeMonth?.MonthName ?? "—")</span>
+                    </div>
+                    <div class="card stat">
+                        <span class="icon-chip out"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20l-7-7 1.4-1.4 4.6 4.6V4h2v12.2l4.6-4.6L19 13l-7 7z" /></svg></span>
+                        <span class="muted">Lowest month</span><strong class="num">@Amount(analysis.MinMonthlyIncome, currency)</strong><span class="muted">@(analysis.WorstIncomeMonth?.MonthName ?? "—")</span>
+                    </div>
+                    <div class="card stat">
+                        <span class="icon-chip"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm-2 8h14v10H5V10zm2 2v3h3v-3H7z" /></svg></span>
+                        <span class="muted">Months analysed</span><strong class="num">@months.Count</strong><span class="muted">@(months.Count > 0 ? $"{months[0].MonthName} – {months[^1].MonthName}" : "—")</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <div><h2 class="card-title">Monthly income</h2><span class="card-sub">Dashed line shows the monthly average</span></div>
+                    </div>
+                    <div class="chart-box"><canvas data-chart="income" aria-label="Income per month with average" role="img"></canvas></div>
+                </div>
+
+                <div class="row">
+                    <div class="card grow-1">
+                        <h2 class="card-title">Net income by year</h2>
+                        <div class="chart-box short"><canvas data-chart="yearly" aria-label="Net income per year" role="img"></canvas></div>
+                    </div>
+                    <div class="card card-flush grow-2">
+                        <h2 class="card-title panel-pad">Yearly summary</h2>
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead><tr><th scope="col">Year</th><th scope="col" class="r">Income</th><th scope="col" class="r">Expenses</th><th scope="col" class="r">Net</th><th scope="col" class="r">Transactions</th></tr></thead>
+                                <tbody>
+                                    @foreach (var y in years)
+                                    {
+                                        <tr>
+                                            <td><strong>@y.Year</strong></td>
+                                            <td class="r num amount-in">@Signed(y.Income, currency)</td>
+                                            <td class="r num amount-out">@Signed(-y.Expenses, currency)</td>
+                                            <td class="r num"><strong class="amount-@(y.NetIncome >= 0 ? "in" : "out")">@Signed(y.NetIncome, currency)</strong></td>
+                                            <td class="r num">@y.TransactionCount.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-            }
-
-            <!-- Income Statistics Section -->
-            @if (analysis.MonthlyAnalyses.Any())
-            {
-                <div id="income-statistics_@currency" class="currency-content-section" style="display: none;">
-                    <div class="row g-4 mb-5">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white border-0">
-                                    <h5 class="fw-bold mb-0">Income Statistics</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row text-center">
-                                        <div class="col-md-3">
-                                            <h6 class="text-muted">Average Monthly</h6>
-                                            <h4 class="fw-bold text-primary">@analysis.AverageMonthlyIncome.ToString("C", currencyCulture)</h4>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h6 class="text-muted">Highest Month</h6>
-                                            <h4 class="fw-bold text-success">@analysis.MaxMonthlyIncome.ToString("C", currencyCulture)</h4>
-                                            @if (analysis.BestIncomeMonth != null)
-                                            {
-                                                <small class="text-muted">@analysis.BestIncomeMonth.MonthName</small>
-                                            }
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h6 class="text-muted">Lowest Month</h6>
-                                            <h4 class="fw-bold text-warning">@analysis.MinMonthlyIncome.ToString("C", currencyCulture)</h4>
-                                            @if (analysis.WorstIncomeMonth != null)
-                                            {
-                                                <small class="text-muted">@analysis.WorstIncomeMonth.MonthName</small>
-                                            }
-                                        </div>
-                                        <div class="col-md-3">
-                                            <h6 class="text-muted">Total Months</h6>
-                                            <h4 class="fw-bold text-info">@analysis.MonthlyAnalyses.Count</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+            </div>
+        </section>
     }
+
+    <p class="card note-card">Your statement was read in memory and is not stored.</p>
 </div>
 
-<!-- Chart.js Library and Custom Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="~/js/analysis-results.js"></script>
+@section Styles {
+    <link rel="stylesheet" href="~/css/analysis-results.css" asp-append-version="true" />
+}
 
-<script>
-    // Initialize charts for each currency with their specific data
-    @foreach (var currencyAnalysis in Model.CurrencyAnalyses)
-    {
-            var currency = currencyAnalysis.Key;
-            var analysis = currencyAnalysis.Value;
-
-            <text>
-            // Create charts for @currency
-            window.createCurrencyCharts('@currency', {
-                balanceHistory: {
-                    labels: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => $"'{b.FormattedDate}'")))],
-                    data: [@Html.Raw(string.Join(",", analysis.BalanceHistory.Select(b => b.Balance.ToString("F2"))))]
-                },
-                monthlyAnalyses: {
-                    labels: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => $"'{m.MonthName}'")))],
-                    income: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Income.ToString("F2"))))],
-                    expenses: [@Html.Raw(string.Join(",", analysis.MonthlyAnalyses.Select(m => m.Expenses.ToString("F2"))))]
-                },
-                transactionTypes: {
-                    labels: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => $"'{t.TransactionType.Replace("_", " ")}'")))],
-                    data: [@Html.Raw(string.Join(",", analysis.TransactionTypeAnalyses.Select(t => t.Count.ToString())))]
-                },
-                yearlyAnalyses: {
-                    labels: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.Year.ToString())))],
-                    data: [@Html.Raw(string.Join(",", analysis.YearlyAnalyses.Select(y => y.NetIncome.ToString("F2"))))]
-                }
-            });
-            </text>
-    }
-</script>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+    <script src="~/js/analysis-results.js" asp-append-version="true"></script>
+}

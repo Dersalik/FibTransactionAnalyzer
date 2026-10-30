@@ -1,248 +1,102 @@
 ﻿@{
-    ViewData["Title"] = "Transaction Analysis";
+    ViewData["Title"] = "Analyze Statement";
 }
 
-<div class="container-fluid py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="text-center mb-5">
-                <h1 class="display-4 fw-bold text-primary">Transaction Analysis</h1>
-                <p class="lead text-muted">Upload your CSV file to analyze your financial transactions</p>
-            </div>
+<section class="page-head">
+    <div class="container">
+        <h1 class="page-title">Analyze Statement</h1>
+        <p class="page-sub">Upload your CSV export and choose what to include.</p>
+    </div>
+</section>
 
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <form asp-controller="Analysis" asp-action="UploadAndAnalyze" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-                        @Html.AntiForgeryToken()
+<div class="container page-body">
+    <div class="row analyze-layout">
+        <form asp-controller="Analysis" asp-action="UploadAndAnalyze" method="post" enctype="multipart/form-data" class="analyze-form" id="analyzeForm" novalidate>
+            @Html.AntiForgeryToken()
 
-                        <div class="mb-4">
-                            <label for="file" class="form-label fw-semibold">Select CSV File</label>
-                            <input type="file"
-                                   class="form-control form-control-lg"
-                                   id="file"
-                                   name="file"
-                                   accept=".csv,.txt"
-                                   required>
-                            <div class="form-text">Upload your transaction CSV file (max 10MB)</div>
-                            <div class="invalid-feedback">Please select a valid CSV file.</div>
-                        </div>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert" role="alert">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
 
-                        <div class="mb-4">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       id="ignoreInternalTransactions"
-                                       name="ignoreInternalTransactions"
-                                       checked
-                                       value="true">
-                                <label class="form-check-label fw-semibold" for="ignoreInternalTransactions">
-                                    Ignore Internal Transactions
-                                </label>
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    When enabled, internal transfers and account-to-account transactions will be excluded from the analysis
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Date Range Filter (Optional)</label>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="dateFrom" class="form-label">From Date</label>
-                                    <input type="date"
-                                           class="form-control"
-                                           id="dateFrom"
-                                           name="dateFrom">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="dateTo" class="form-label">To Date</label>
-                                    <input type="date"
-                                           class="form-control"
-                                           id="dateTo"
-                                           name="dateTo">
-                                </div>
-                            </div>
-                            <div class="form-text">
-                                <i class="fas fa-calendar me-1"></i>
-                                Filter transactions within the specified date range. Leave empty to include all transactions.
-                            </div>
-                        </div>
-
-                        @if (!ViewData.ModelState.IsValid)
-                        {
-                            <div class="alert alert-danger" role="alert">
-                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                                {
-                                    <div>@error.ErrorMessage</div>
-                                }
-                            </div>
-                        }
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
-                                <i class="fas fa-chart-line me-2"></i>
-                                Analyze Transactions
-                            </button>
-                        </div>
-                    </form>
+            <div class="card stack">
+                <div>
+                    <label for="file" class="card-title">Statement file</label>
+                    <p class="card-sub">The CSV you exported from your banking app (.csv or .txt, up to 2 MB).</p>
+                </div>
+                <div class="dropzone" id="dropzone">
+                    <input type="file" id="file" name="file" accept=".csv,.txt" required aria-describedby="fileStatus" />
+                    <span class="icon-chip in drop-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5l5 5M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    </span>
+                    <strong>Drag your file here</strong>
+                    <span class="muted">or</span>
+                    <span class="btn btn-mint">Choose file</span>
+                    <span class="drop-status" id="fileStatus" aria-live="polite">No file selected</span>
                 </div>
             </div>
 
-            <div class="mt-4 text-center">
-                <small class="text-muted">
-                    Supported formats: CSV files with FIB transaction export format
-                </small>
+            <div class="card option-row">
+                <span class="icon-chip">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 7h13l-3-3 1.4-1.4L21 8l-5.6 5.4L14 12l3-3H4V7zm16 10H7l3 3-1.4 1.4L3 16l5.6-5.4L10 12l-3 3h13v2z" /></svg>
+                </span>
+                <div class="grow">
+                    <label for="ignoreInternalTransactions" class="option-title">Exclude internal transfers</label>
+                    <p class="card-sub">Auto-saving and Money Box moves between your own accounts won’t count as income or spending.</p>
+                </div>
+                <input type="checkbox" role="switch" class="switch" id="ignoreInternalTransactions" name="ignoreInternalTransactions" value="true" checked />
             </div>
-        </div>
+
+            <fieldset class="card stack period">
+                <legend class="visually-hidden">Period</legend>
+                <div>
+                    <span class="option-title">Period</span>
+                    <p class="card-sub">Leave on “All time” to include every transaction in the file.</p>
+                </div>
+                <div class="chips" role="group" aria-label="Period presets">
+                    <button type="button" class="chip-btn" data-period="30d" aria-pressed="false">Last 30 days</button>
+                    <button type="button" class="chip-btn" data-period="year" aria-pressed="false">This year</button>
+                    <button type="button" class="chip-btn" data-period="all" aria-pressed="true">All time</button>
+                    <button type="button" class="chip-btn" data-period="custom" aria-pressed="false">Custom</button>
+                </div>
+                <div class="date-grid" id="customDates" hidden>
+                    <div class="field">
+                        <label for="dateFrom">From</label>
+                        <input type="date" class="input" id="dateFrom" name="dateFrom" />
+                    </div>
+                    <div class="field">
+                        <label for="dateTo">To</label>
+                        <input type="date" class="input" id="dateTo" name="dateTo" />
+                    </div>
+                    <p class="card-sub date-hint" id="dateHint">“From” must be on or before “To”.</p>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary btn-block" id="analyzeBtn">Analyze transactions</button>
+        </form>
+
+        <aside class="analyze-aside">
+            <div class="card stack">
+                <h2 class="card-title">How it works</h2>
+                <ol class="steps">
+                    <li><span class="icon-chip ink sm">1</span><div><strong>Export from your bank app</strong><span class="muted">Save your transaction history as a CSV file.</span></div></li>
+                    <li><span class="icon-chip ink sm">2</span><div><strong>Upload and choose options</strong><span class="muted">Pick a period and whether to skip internal transfers.</span></div></li>
+                    <li><span class="icon-chip ink sm">3</span><div><strong>Read your report</strong><span class="muted">One report per currency: balance, cash flow, types, counterparties and income.</span></div></li>
+                </ol>
+            </div>
+            <div class="card privacy-note">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                <span>Your file is processed in memory only and discarded once the report is ready.</span>
+            </div>
+        </aside>
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('.needs-validation');
-        const fileInput = document.getElementById('file');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const dateFromInput = document.getElementById('dateFrom');
-        const dateToInput = document.getElementById('dateTo');
-
-        form.addEventListener('submit', function(event) {
-            let isValid = form.checkValidity();
-
-            // Custom validation for date range
-            if (dateFromInput.value && dateToInput.value) {
-                const fromDate = new Date(dateFromInput.value);
-                const toDate = new Date(dateToInput.value);
-
-                if (fromDate > toDate) {
-                    dateFromInput.setCustomValidity('From date must be before To date');
-                    dateToInput.setCustomValidity('To date must be after From date');
-                    isValid = false;
-                } else {
-                    dateFromInput.setCustomValidity('');
-                    dateToInput.setCustomValidity('');
-                }
-            } else {
-                dateFromInput.setCustomValidity('');
-                dateToInput.setCustomValidity('');
-            }
-
-            if (!isValid) {
-                event.preventDefault();
-                event.stopPropagation();
-            } else {
-                analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
-                analyzeBtn.disabled = true;
-            }
-            form.classList.add('was-validated');
-        });
-
-        // Date validation on change
-        function validateDateRange() {
-            if (dateFromInput.value && dateToInput.value) {
-                const fromDate = new Date(dateFromInput.value);
-                const toDate = new Date(dateToInput.value);
-
-                if (fromDate > toDate) {
-                    dateFromInput.setCustomValidity('From date must be before To date');
-                    dateToInput.setCustomValidity('To date must be after From date');
-                } else {
-                    dateFromInput.setCustomValidity('');
-                    dateToInput.setCustomValidity('');
-                }
-            }
-        }
-
-        dateFromInput.addEventListener('change', validateDateRange);
-        dateToInput.addEventListener('change', validateDateRange);
-
-        fileInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const fileSize = (file.size / 1024 / 1024).toFixed(2);
-                const fileText = document.querySelector('.form-text');
-                fileText.textContent = `Selected: ${file.name} (${fileSize} MB)`;
-            }
-        });
-    });
-</script>
-
-<style>
-    .card {
-        border-radius: 20px;
-        transition: transform 0.2s ease-in-out;
-    }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-    .btn-primary {
-        background: #1e40af;
-        border-color: #1e40af;
-        border-radius: 15px;
-        padding: 15px 30px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-        .btn-primary:hover {
-            background: #1e3a8a;
-            border-color: #1e3a8a;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
-        }
-
-    .form-control {
-        border-radius: 12px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-
-        .form-control:focus {
-            border-color: #1e40af;
-            box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.1);
-        }
-
-        .form-control:invalid {
-            border-color: #dc2626;
-        }
-
-    .form-check-input {
-        border-radius: 6px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-
-        .form-check-input:checked {
-            background-color: #1e40af;
-            border-color: #1e40af;
-        }
-
-        .form-check-input:focus {
-            border-color: #1e40af;
-            box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.1);
-        }
-
-    .text-primary {
-        background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    body {
-        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-        min-height: 100vh;
-    }
-
-    .invalid-feedback {
-        display: block;
-    }
-
-    .alert-danger {
-        background-color: #fef2f2;
-        border-color: #fecaca;
-        color: #dc2626;
-    }
-</style>
+@section Scripts {
+    <script src="~/js/analyze.js" asp-append-version="true"></script>
+}
