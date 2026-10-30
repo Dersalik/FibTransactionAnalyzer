@@ -1,0 +1,44 @@
+/* Page-level styles for Home and Privacy. Shared tokens live in site.css. */
+
+/* ---------- Home ---------- */
+
+.hero { background: var(--surface); }
+.hero-inner { display: flex; flex-wrap: wrap; gap: 48px; align-items: center; padding-top: 48px; padding-bottom: 64px; }
+.hero-copy { flex: 1 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+.hero-copy h1 { font-size: 52px; line-height: 1.12; letter-spacing: -.02em; }
+.hero-copy p { font-size: 18px; line-height: 1.6; color: var(--muted); max-width: 520px; }
+.hero-tag { align-self: flex-start; padding: 6px 14px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-size: 13px; font-weight: 600; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-preview { flex: 1 1 400px; min-width: 0; background: var(--bg); border-radius: 32px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+.hero-preview .card { padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; }
+.preview-net { flex-direction: row !important; gap: 16px !important; align-items: center; }
+.preview-net > div { display: flex; flex-direction: column; }
+.preview-net strong { font-size: 28px; font-weight: 600; letter-spacing: -.02em; }
+.preview-net small { font-size: 15px; font-weight: 500; }
+.preview-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.preview-pair strong { font-size: 18px; }
+.preview-bars { flex-direction: row !important; align-items: flex-end; gap: 8px !important; height: 110px; }
+.preview-bars > div { flex: 1; height: 100%; display: flex; gap: 2px; align-items: flex-end; }
+.preview-bars span { flex: 1; border-radius: 999px; }
+.bar-in { background: var(--in-bar); }
+.bar-out { background: var(--out-bar); }
+.preview-caption { font-size: 12px; text-align: center; }
+.section-title { font-size: 30px; }
+.feature { display: flex; flex-direction: column; gap: 14px; padding: 26px; }
+.feature h3 { font-size: 18px; }
+.cta { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between; }
+.page-body > .cta:nth-last-child(1) { margin-top: 16px; }
+.cta-copy { display: flex; gap: 18px; align-items: center; flex: 1 1 420px; }
+.cta-copy h3 { font-size: 20px; margin-bottom: 4px; }
+@media (max-width: 720px) { .hero-copy h1 { font-size: 36px; } }
+
+/* ---------- Privacy ---------- */
+
+.pillar { display: flex; flex-direction: column; gap: 12px; padding: 26px; }
+.pillar h2 { font-size: 18px; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.steps li { display: flex; gap: 14px; align-items: center; }
+.steps .icon-chip { width: 36px; height: 36px; font-size: 15px; }
+.callout { padding: 16px 18px; border-radius: var(--radius-field); background: var(--bg); font-size: 14px; color: var(--ink-2); }
+.cta-copy h2 { margin-bottom: 4px; }

@@ -2,173 +2,80 @@
     ViewData["Title"] = "Transaction Analyzer";
 }
 
-<style>
-    .hero {
-        background: linear-gradient(135deg, #1e3a8a 0%, #065f46 100%);
-        color: white;
-        padding: 80px 0;
-        text-align: center;
-    }
+<section class="hero">
+    <div class="container hero-inner">
+        <div class="hero-copy">
+            <span class="hero-tag">For FIB statement exports · CSV</span>
+            <h1>Understand your money in one clear report.</h1>
+            <p>Upload the transaction file you exported from your banking app. See your balance over time, monthly cash flow, transaction types and the people you pay most, for each currency.</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary btn-lg" asp-controller="Analysis" asp-action="Index">Start analysis</a>
+                <a class="btn btn-outline btn-lg" asp-controller="Home" asp-action="Privacy">How your data is handled</a>
+            </div>
+        </div>
 
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
+        <div class="hero-preview" aria-label="Example report with sample figures">
+            <div class="card card-raised preview-net">
+                <svg width="56" height="56" viewBox="0 0 64 64" aria-hidden="true">
+                    <circle cx="32" cy="32" r="27" fill="none" stroke="#EEF0F4" stroke-width="6" />
+                    <circle cx="32" cy="32" r="27" fill="none" stroke="#3FB39A" stroke-width="6" stroke-linecap="round" stroke-dasharray="146 170" transform="rotate(-90 32 32)" />
+                </svg>
+                <div>
+                    <span class="muted">Net change</span>
+                    <strong class="num">+7,460,000 <small>IQD</small></strong>
+                </div>
+            </div>
+            <div class="preview-pair">
+                <div class="card"><span class="muted">Money in</span><strong class="amount-in num">+53.37M</strong></div>
+                <div class="card"><span class="muted">Money out</span><strong class="amount-out num">−45.91M</strong></div>
+            </div>
+            <div class="card preview-bars" aria-hidden="true">
+                @foreach (var (inH, outH) in new[] { (60, 49), (46, 36), (54, 71), (68, 52), (73, 60), (81, 62), (96, 69), (64, 82), (86, 58) })
+                {
+                    <div><span class="bar-in" style="height:@(inH)%"></span><span class="bar-out" style="height:@(outH)%"></span></div>
+                }
+            </div>
+            <span class="muted preview-caption">Example report with sample figures</span>
+        </div>
+    </div>
+</section>
 
-        .hero .highlight {
-            color: #f59e0b;
-        }
+<div class="container page-body">
+    <h2 class="section-title">What you get</h2>
+    <div class="grid">
+        <div class="card feature">
+            <span class="icon-chip"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 20V4h2v14h16v2H3zm4-4l4-5 3 3 5-7 1.6 1.2L14.3 17 11 13.8 8.6 17H7z" /></svg></span>
+            <h3>Balance &amp; cash flow</h3>
+            <p class="muted">Your balance after every transaction, and money in vs. out for each month.</p>
+        </div>
+        <div class="card feature">
+            <span class="icon-chip"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C7 3 3 4.8 3 7v10c0 2.2 4 4 9 4s9-1.8 9-4V7c0-2.2-4-4-9-4zm0 2c4 0 7 1.3 7 2s-3 2-7 2-7-1.3-7-2 3-2 7-2zm-7 5c1.8 1 4.3 1.5 7 1.5s5.2-.5 7-1.5v2c0 .7-3 2-7 2s-7-1.3-7-2v-2z" /></svg></span>
+            <h3>Each currency on its own</h3>
+            <p class="muted">IQD, USD and EUR are kept apart, with a switch at the top of the report.</p>
+        </div>
+        <div class="card feature">
+            <span class="icon-chip"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 11a4 4 0 100-8 4 4 0 000 8zm7 0a3 3 0 100-6 3 3 0 000 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6H2zm15.5 0c0-2-.8-3.8-2.1-5.1.5-.1 1-.1 1.6-.1 3 0 5 2.2 5 5.2h-4.5z" /></svg></span>
+            <h3>Counterparties</h3>
+            <p class="muted">Who you sent money to and received it from, with the net balance for each.</p>
+        </div>
+        <div class="card feature">
+            <span class="icon-chip"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 2v10h10A10 10 0 0011 2zM9 4.1A10 10 0 1019.9 15H9V4.1z" /></svg></span>
+            <h3>Types &amp; income</h3>
+            <p class="muted">Spending by transaction type, the largest payment in each, and your monthly income range.</p>
+        </div>
+    </div>
 
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-
-    .btn-primary {
-        background: #059669;
-        border: none;
-        padding: 12px 30px;
-        border-radius: 25px;
-        font-weight: 600;
-        transition: all 0.3s;
-    }
-
-        .btn-primary:hover {
-            background: #047857;
-            transform: translateY(-2px);
-        }
-
-    .features {
-        padding: 60px 0;
-        background: #f8fafc;
-    }
-
-    .feature-card {
-        background: white;
-        padding: 30px 20px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-        transition: transform 0.3s;
-    }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-
-    .feature-icon {
-        font-size: 2.5rem;
-        color: #1e40af;
-        margin-bottom: 15px;
-    }
-
-    .feature-card h4 {
-        color: #1f2937;
-        margin-bottom: 15px;
-    }
-
-    .stats {
-        background: #1f2937;
-        color: white;
-        padding: 50px 0;
-        text-align: center;
-    }
-
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #059669;
-    }
-
-    .cta {
-        padding: 60px 0;
-        text-align: center;
-        background: white;
-    }
-</style>
-
-<div class="hero">
-    <div class="container">
-        <h1><span class="highlight">Smart</span> Financial Analysis</h1>
-        <p>Upload your FIB transaction data and get instant insights with beautiful visualizations</p>
-        <a asp-controller="Analysis" asp-action="Index" class="btn btn-primary btn-lg">
-            <i class="fas fa-upload me-2"></i>Start Analysis
-        </a>
+    <div class="card cta">
+        <div class="cta-copy">
+            <span class="icon-chip in">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+            <div>
+                <h3>Nothing is stored</h3>
+                <p class="muted">Your file is read in memory, the report is built, and the data is discarded. No accounts, cookies or tracking.</p>
+            </div>
+        </div>
+        <a class="btn btn-primary btn-lg" asp-controller="Analysis" asp-action="Index">Analyze now</a>
     </div>
 </div>
 
-<section class="features">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2>Key Features</h2>
-        </div>
-
-        <div class="row">
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h4>Income Tracking</h4>
-                    <p>Monitor your income patterns and track financial trends over time</p>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <h4>Multi-Currency</h4>
-                    <p>Support for multiple currencies</p>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <h4>Visual Reports</h4>
-                    <p>Beautiful charts and comprehensive financial reports</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="stats">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-md-4">
-                <div class="stat-number">100%</div>
-                <div>Secure</div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-number">∞</div>
-                <div>Transactions</div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-number">⚡</div>
-                <div>Fast Analysis</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="cta">
-    <div class="container">
-        <h2>Ready to Get Started?</h2>
-        <p class="mb-4">Upload your transaction file and discover powerful insights</p>
-        <a asp-controller="Analysis" asp-action="Index" class="btn btn-primary btn-lg">
-            <i class="fas fa-rocket me-2"></i>Analyze Now
-        </a>
-    </div>
-</section>
-
-@section Scripts {
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-}
