@@ -42,3 +42,46 @@
 .steps .icon-chip { width: 36px; height: 36px; font-size: 15px; }
 .callout { padding: 16px 18px; border-radius: var(--radius-field); background: var(--bg); font-size: 14px; color: var(--ink-2); }
 .cta-copy h2 { margin-bottom: 4px; }
+
+/* ---------- Analyze ---------- */
+
+.analyze-layout { align-items: flex-start; }
+.analyze-form { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.analyze-aside { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.analyze-form .card-title { display: block; margin-bottom: 4px; }
+.steps li > div { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.steps li strong { font-size: 15px; font-weight: 600; }
+.steps li { align-items: flex-start; }
+
+.dropzone {
+    position: relative;
+    border: 2px dashed #B9E6DC;
+    border-radius: 20px;
+    background: var(--accent-tint);
+    padding: 36px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+}
+.dropzone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.dropzone:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+.dropzone.is-dragging { border-color: var(--accent-strong); background: var(--accent-soft); }
+.dropzone.has-file { border-style: solid; border-color: var(--accent); }
+.dropzone.is-invalid { border-color: var(--out); background: var(--out-soft); }
+.drop-icon { width: 64px; height: 64px; }
+.drop-status { font-size: 14px; color: var(--ink-2); font-weight: 500; }
+
+.option-row { display: flex; gap: 16px; align-items: center; padding: 22px 28px; }
+.option-row .grow { flex: 1; min-width: 0; }
+.option-title { font-size: 17px; font-weight: 600; }
+
+.period { border: 0; margin: 0; padding: 22px 28px; }
+.date-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.date-grid[hidden] { display: none; }
+.date-hint { grid-column: 1 / -1; }
+.date-hint.is-error { color: var(--out); font-weight: 500; }
+
+.privacy-note { display: flex; gap: 14px; align-items: flex-start; background: var(--accent-soft); color: var(--accent-ink); padding: 24px; font-size: 14px; }
+.privacy-note svg { flex: none; }

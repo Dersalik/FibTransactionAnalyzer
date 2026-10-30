@@ -211,7 +211,7 @@ p { margin: 0; }
 }
 .card-raised { box-shadow: var(--shadow); }
 .card-flush { padding: 0; overflow: hidden; }
-.card-title { font-size: 20px; }
+.card-title { font-size: 20px; font-weight: 600; }
 .card-sub { font-size: 14px; color: var(--muted); }
 .card-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
 .card-head > div { display: flex; flex-direction: column; gap: 2px; }
@@ -288,7 +288,30 @@ p { margin: 0; }
 }
 .input:focus { border-color: var(--accent); outline: none; }
 
-.switch { width: 48px; height: 28px; margin: 0; accent-color: var(--accent-strong); flex: none; }
+.switch {
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    width: 52px; height: 30px;
+    margin: 0;
+    border-radius: 999px;
+    background: #C9CED8;
+    cursor: pointer;
+    flex: none;
+    transition: background .15s;
+}
+.switch::after {
+    content: "";
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+    transition: transform .15s;
+}
+.switch:checked { background: var(--accent-strong); }
+.switch:checked::after { transform: translateX(22px); }
 
 .alert {
     padding: 14px 18px;
@@ -326,6 +349,7 @@ p { margin: 0; }
 
 @media (max-width: 720px) {
     .container { padding: 0 16px; }
+    .site-header .btn-mint { display: none; }
     .page-title { font-size: 30px; }
     .card { padding: 22px 20px; }
     .table th:first-child, .table td:first-child { padding-left: 20px; }
