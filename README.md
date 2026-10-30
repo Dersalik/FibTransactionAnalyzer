@@ -16,7 +16,7 @@ The tool supports multiple currencies (USD, EUR, IQD) and provides deep insights
 - Monthly income vs expense tracking with trend analysis
 - Account balance history visualization  
 - Transaction categorization and spending pattern analysis
-- Multi-currency support with separate analytics for each currency
+- Multi-currency support with separate analytics for each currency, switchable at the top of the report
 
 **Privacy & Security**
 - Zero data storage - your information never leaves your session
@@ -27,30 +27,41 @@ The tool supports multiple currencies (USD, EUR, IQD) and provides deep insights
 **Visual Analytics**
 - Interactive charts showing balance trends over time
 - Cash flow analysis with income/expense comparisons
-- Transaction type distribution with detailed breakdowns
+- Transaction type distribution with detailed breakdowns and the largest transaction per type
+- One counterparty view with search, filtering by transaction type and sorting by net, sent, received or total
 - Yearly and monthly financial performance reports
 
 ## Screenshots
 
-*Dashboard Overview*
+Screenshots use a generated sample statement; the names and amounts are not real.
 
-<img width="1737" height="711" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 4_33_49 PM" src="https://github.com/user-attachments/assets/d65be72f-92b4-4798-82a2-b0005acc1580" />
+*Home*
 
-*Monthly Cash Flow Analysis*  
+<img src="docs/screenshots/home.png" alt="Home page with a short introduction and an example report preview" width="900" />
 
-<img width="787" height="525" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 1_34_39 AM" src="https://github.com/user-attachments/assets/c9890dc8-d159-438e-936b-f067bf2ed42d" />
+*Analyze: upload a statement, exclude internal transfers and pick a period*
 
-*Transaction Type Breakdown*
+<img src="docs/screenshots/analyze.png" alt="Analyze page with a drag-and-drop file card, internal-transfer switch and period presets" width="900" />
 
-<img width="788" height="513" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 12_08_24 AM" src="https://github.com/user-attachments/assets/16c60043-c275-482f-8a8a-7429ab214050" />
+*Report overview: net balance, money in and out, balance history, monthly cash flow and transaction types*
 
-*Top Counterparties*
+<img src="docs/screenshots/report-overview.png" alt="Statement report overview with summary cards and charts" width="900" />
 
-<img width="769" height="850" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 1_41_38 AM" src="https://github.com/user-attachments/assets/d113bb4d-1561-48a7-a894-39ca84ef9734" />
+*Transaction types and the largest transaction in each type*
 
-*Counterparties - Sent vs Received*
+<img src="docs/screenshots/report-types.png" alt="Transaction types table with totals and detail cards for the largest transactions" width="900" />
 
-<img width="1673" height="676" alt="Transaction Analysis Results - Transaction Analyzer - Google Chrome 26_09_2025 4_31_37 PM" src="https://github.com/user-attachments/assets/7c0ee6c7-987c-499a-a6b3-0cacd5187577" />
+*Counterparties: sent vs received, with search, type filter and sorting*
+
+<img src="docs/screenshots/report-counterparties.png" alt="Counterparty list showing sent, received and net balance for each counterparty" width="900" />
+
+*Income statistics and yearly summary*
+
+<img src="docs/screenshots/report-income.png" alt="Monthly income chart with average line, and net income by year" width="900" />
+
+*On a phone*
+
+<img src="docs/screenshots/phone-report.png" alt="Statement report on a phone-sized screen" width="320" />
 
 ## Quick Start
 
